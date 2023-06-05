@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  app:
+    image: chat-api
+    build:
+      args:
+        - target=dev
+    volumes:
+      - .:/app
+    ports:
+      - 8080:8080
+
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    command: -jar DynamoDBLocal.jar -sharedDb -dbPath /data # file path for data persistence
+    volumes:
+      - dynamodb:/data # data persistence
+    ports:
+      - 8000:8000
+
+  dynamodb-admin:
+    image: aaronshaf/dynamodb-admin:latest
+    container_name: dynamodb-admin
+    environment:
+      - DYNAMO_ENDPOINT=dynamodb-local:8000
+    ports:
+      - 8001:8001
+    depends_on:
+      - dynamodb-local
+
+volumes:
+  dynamodb:
