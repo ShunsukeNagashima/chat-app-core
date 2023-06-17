@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shunsukenagashima/chat-api/pkg/interface/routes"
+	"github.com/shunsukenagashima/chat-api/pkg/interface/route"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 func run(ctx context.Context) error {
 	router := gin.Default()
 
-	routes.RegisterRoutes(router)
+	route.RegisterRoutes(router)
 
 	return router.Run()
 }
