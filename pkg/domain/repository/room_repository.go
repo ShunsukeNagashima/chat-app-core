@@ -1,11 +1,16 @@
 package repository
 
-import "github.com/shunsukenagashima/chat-api/pkg/domain/model"
+import (
+	"context"
 
-type RoomsRepository interface {
-	Get(roomID string) (*model.Room, error)
-	GetAllPublic() ([]*model.Room, error)
-	Create(room *model.Room) error
-	Update(room *model.Room) error
-	Delete(roomID string) error
+	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
+)
+
+type RoomRepository interface {
+	GetById(ctx context.Context, roomID string) (*model.Room, error)
+	GetByName(ctx context.Context, name string) (*model.Room, error)
+	GetAllPublic(ctx context.Context) ([]*model.Room, error)
+	Create(ctx context.Context, room *model.Room) error
+	Delete(ctx context.Context, roomID string) error
+	Update(ctx context.Context, room *model.Room) error
 }
