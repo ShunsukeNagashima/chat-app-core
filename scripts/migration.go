@@ -26,4 +26,8 @@ func main() {
 	if err := scripts.SetupMessages(); err != nil {
 		log.Panicf("Failed to set up messages: %v", err)
 	}
+
+	if err := scripts.SetupRoomUsers(); err != nil {
+		log.Panicf("Failed to set up room users: %v", err)
+	}
 }
