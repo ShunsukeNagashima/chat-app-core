@@ -5,15 +5,15 @@ import (
 	"fmt"
 
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
+	"github.com/shunsukenagashima/chat-api/pkg/domain/repository"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/usecase"
-	"github.com/shunsukenagashima/chat-api/pkg/infra/repository"
 )
 
 type RoomUsecase struct {
-	repo *repository.RoomRepository
+	repo repository.RoomRepository
 }
 
-func NewRoomUsecase(repo *repository.RoomRepository) usecase.RoomUsecase {
+func NewRoomUsecase(repo repository.RoomRepository) usecase.RoomUsecase {
 	return &RoomUsecase{
 		repo,
 	}
