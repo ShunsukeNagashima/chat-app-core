@@ -6,6 +6,7 @@ import (
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 )
 
+//go:generate mockery --name=RoomRepository --output=mocks
 type RoomRepository interface {
 	GetById(ctx context.Context, roomID string) (*model.Room, error)
 	GetByName(ctx context.Context, name string) (*model.Room, error)
