@@ -53,7 +53,7 @@ func (r *RoomRepository) GetById(ctx context.Context, roomID string) (*model.Roo
 
 func (r *RoomRepository) GetByName(ctx context.Context, name string) (*model.Room, error) {
 	input := &dynamodb.QueryInput{
-		TableName: aws.String("rooms"),
+		TableName: aws.String(r.dbName),
 		IndexName: aws.String("NameIndex"),
 		KeyConditions: map[string]*dynamodb.Condition{
 			"name": {
