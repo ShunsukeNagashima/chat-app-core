@@ -16,8 +16,9 @@ func TestGetUserByID(t *testing.T) {
 	mockRepo := new(repoMocks.UserRepository)
 	mockAuth := new(authMocks.FirebaseAuthenticator)
 	mockUser := &model.User{
-		UserID: "1",
-		Email:  "user-1@example.com",
+		UserID:   "1",
+		Username: "user-1",
+		Email:    "user-1@example.com",
 	}
 
 	mockRepo.On("GetByID", mock.Anything, mockUser.UserID).Return(mockUser, nil)
@@ -28,6 +29,7 @@ func TestGetUserByID(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
 	assert.Equal(t, mockUser.UserID, user.UserID)
+	assert.Equal(t, mockUser.Username, user.Username)
 	assert.Equal(t, mockUser.Email, user.Email)
 	mockRepo.AssertExpectations(t)
 }
@@ -36,8 +38,9 @@ func TestCreateUser(t *testing.T) {
 	mockRepo := new(repoMocks.UserRepository)
 	mockAuth := new(authMocks.FirebaseAuthenticator)
 	mockUser := &model.User{
-		UserID: "1",
-		Email:  "user-1@example.com",
+		UserID:   "1",
+		Username: "user-1",
+		Email:    "user-1@example.com",
 	}
 
 	mockRepo.On("Create", mock.Anything, mockUser).Return(nil)
@@ -55,8 +58,9 @@ func TestCreateUser_WhenIDIsntMatch(t *testing.T) {
 	mockRepo := new(repoMocks.UserRepository)
 	mockAuth := new(authMocks.FirebaseAuthenticator)
 	mockUser := &model.User{
-		UserID: "1",
-		Email:  "user-1@example.com",
+		UserID:   "1",
+		Username: "user-1",
+		Email:    "user-1@example.com",
 	}
 
 	mockAuth.On("GetFirebaseUser", mock.Anything, mockUser.UserID).Return(&auth.Token{UID: "2"}, nil)
