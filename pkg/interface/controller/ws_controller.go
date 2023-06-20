@@ -16,12 +16,12 @@ var upgrader = websocket.Upgrader{
 }
 
 type WSController struct {
-	Hub *model.Hub
+	HubManager *model.HubManager
 }
 
-func NewWSController(hub *model.Hub) *WSController {
+func NewWSController(hubManager *model.HubManager) *WSController {
 	return &WSController{
-		Hub: hub,
+		HubManager: hubManager,
 	}
 }
 
@@ -32,9 +32,12 @@ func (wc *WSController) HandleConnection(c *gin.Context) {
 		return
 	}
 
-	client := model.NewClient(conn, wc.Hub)
+	roomID := c.Param("roomID")
 
-	wc.Hub.Register <- client
+	hub := wc.HubManager.GetHub(roomID)
+	client := model.NewClient(conn, hub)
+
+	hub.Register <- client
 
 	go client.Write()
 	go client.Read()

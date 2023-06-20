@@ -1,8 +1,10 @@
 package route
 
 import (
+	"os"
 	"regexp"
 
+	firebase "firebase.google.com/go"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -12,18 +14,32 @@ import (
 	"github.com/shunsukenagashima/chat-api/pkg/infra/repository"
 	"github.com/shunsukenagashima/chat-api/pkg/interface/controller"
 	"github.com/shunsukenagashima/chat-api/pkg/usecase"
+	"google.golang.org/api/option"
 )
 
 func RegisterRoutes(router *gin.Engine) {
-	hub := model.NewHub()
-	go hub.Run()
+	hubManager := model.NewHubManager()
 
 	sess, _ := session.NewSession(&aws.Config{
 		Region:   aws.String("us-west-2"),
 		Endpoint: aws.String("http://localhost:8000"),
 	})
-
 	db := dynamodb.New(sess)
+
+	credentials, err := os.ReadFile("/run/secrets/firebase-credentials")
+	if err != nil {
+		return nil, err
+	}
+	opt := option.WithCredentialsJSON(credentials)
+	app, err := firebase.NewApp(ctx, nil, opt)
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := app.Auth(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	rr := repository.NewRoomRepository(db)
 	ru := usecase.NewRoomUsecase(rr)
@@ -32,7 +48,7 @@ func RegisterRoutes(router *gin.Engine) {
 	v.RegisterValidation("alnumdash", isAlnumOrDash)
 
 	hc := controller.NewHelloController()
-	wsc := controller.NewWSController(hub)
+	wsc := controller.NewWSController(hubManager)
 	rc := controller.NewRoomController(ru, v)
 
 	apiGroup := router.Group("/api")
