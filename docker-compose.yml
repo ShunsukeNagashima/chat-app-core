@@ -10,6 +10,8 @@ services:
       - .:/app
     ports:
       - 8080:8080
+    secrets:
+      - firebase-credentials
 
   dynamodb-local:
     image: amazon/dynamodb-local:latest
@@ -31,3 +33,7 @@ services:
 
 volumes:
   dynamodb:
+
+secrets:
+  firebase-credentials:
+    file: .secrets/firebase-credentials.json
