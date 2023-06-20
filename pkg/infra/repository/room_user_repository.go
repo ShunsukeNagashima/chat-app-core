@@ -8,19 +8,19 @@ import (
 	"github.com/shunsukenagashima/chat-api/pkg/domain/repository"
 )
 
-type RoomUserRepository struct {
+type RoomUserRepositoryImpl struct {
 	db     *dynamodb.DynamoDB
 	dbName string
 }
 
 func NewRoomUserRepository(db *dynamodb.DynamoDB) repository.RoomUserRepository {
-	return &RoomUserRepository{
+	return &RoomUserRepositoryImpl{
 		db,
 		"RoomUsers",
 	}
 }
 
-func (r *RoomUserRepository) GetAllByUserID(userID string) ([]*model.Room, error) {
+func (r *RoomUserRepositoryImpl) GetAllByUserID(userID string) ([]*model.Room, error) {
 	input := &dynamodb.QueryInput{
 		TableName: aws.String("RoomUsers"),
 		IndexName: aws.String("UserIDIndex"),

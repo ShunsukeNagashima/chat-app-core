@@ -9,25 +9,25 @@ import (
 	"github.com/shunsukenagashima/chat-api/pkg/domain/usecase"
 )
 
-type RoomUsecase struct {
+type RoomUsecaseImpl struct {
 	repo repository.RoomRepository
 }
 
 func NewRoomUsecase(repo repository.RoomRepository) usecase.RoomUsecase {
-	return &RoomUsecase{
+	return &RoomUsecaseImpl{
 		repo,
 	}
 }
 
-func (ru *RoomUsecase) GetRoomByID(ctx context.Context, roomID string) (*model.Room, error) {
+func (ru *RoomUsecaseImpl) GetRoomByID(ctx context.Context, roomID string) (*model.Room, error) {
 	return ru.repo.GetById(ctx, roomID)
 }
 
-func (ru *RoomUsecase) GetAllPublicRoom(ctx context.Context) ([]*model.Room, error) {
+func (ru *RoomUsecaseImpl) GetAllPublicRoom(ctx context.Context) ([]*model.Room, error) {
 	return ru.repo.GetAllPublic(ctx)
 }
 
-func (ru *RoomUsecase) CreateRoom(ctx context.Context, room *model.Room) error {
+func (ru *RoomUsecaseImpl) CreateRoom(ctx context.Context, room *model.Room) error {
 	existingRoom, err := ru.repo.GetByName(ctx, room.Name)
 	if err != nil {
 		return err
@@ -43,7 +43,7 @@ func (ru *RoomUsecase) CreateRoom(ctx context.Context, room *model.Room) error {
 	return nil
 }
 
-func (ru *RoomUsecase) DeleteRoom(ctx context.Context, roomID string) error {
+func (ru *RoomUsecaseImpl) DeleteRoom(ctx context.Context, roomID string) error {
 	room, err := ru.repo.GetById(ctx, roomID)
 	if err != nil {
 		return err
@@ -59,7 +59,7 @@ func (ru *RoomUsecase) DeleteRoom(ctx context.Context, roomID string) error {
 	return nil
 }
 
-func (ru *RoomUsecase) UpdateRoom(ctx context.Context, room *model.Room) error {
+func (ru *RoomUsecaseImpl) UpdateRoom(ctx context.Context, room *model.Room) error {
 	existingRoom, err := ru.repo.GetByName(ctx, room.Name)
 	if err != nil {
 		return err

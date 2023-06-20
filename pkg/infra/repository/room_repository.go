@@ -11,19 +11,19 @@ import (
 	"github.com/shunsukenagashima/chat-api/pkg/domain/repository"
 )
 
-type RoomRepository struct {
+type RoomRepositoryImpl struct {
 	db     *dynamodb.DynamoDB
 	dbName string
 }
 
 func NewRoomRepository(db *dynamodb.DynamoDB) repository.RoomRepository {
-	return &RoomRepository{
+	return &RoomRepositoryImpl{
 		db,
 		"Rooms",
 	}
 }
 
-func (r *RoomRepository) GetById(ctx context.Context, roomID string) (*model.Room, error) {
+func (r *RoomRepositoryImpl) GetById(ctx context.Context, roomID string) (*model.Room, error) {
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(r.dbName),
 		Key: map[string]*dynamodb.AttributeValue{
@@ -51,7 +51,7 @@ func (r *RoomRepository) GetById(ctx context.Context, roomID string) (*model.Roo
 	return &room, nil
 }
 
-func (r *RoomRepository) GetByName(ctx context.Context, name string) (*model.Room, error) {
+func (r *RoomRepositoryImpl) GetByName(ctx context.Context, name string) (*model.Room, error) {
 	input := &dynamodb.QueryInput{
 		TableName: aws.String(r.dbName),
 		IndexName: aws.String("NameIndex"),
@@ -86,7 +86,7 @@ func (r *RoomRepository) GetByName(ctx context.Context, name string) (*model.Roo
 	return room, nil
 }
 
-func (r *RoomRepository) GetAllPublic(ctx context.Context) ([]*model.Room, error) {
+func (r *RoomRepositoryImpl) GetAllPublic(ctx context.Context) ([]*model.Room, error) {
 	input := &dynamodb.ScanInput{
 		TableName:        aws.String(r.dbName),
 		FilterExpression: aws.String("room_type = :public"),
@@ -110,7 +110,7 @@ func (r *RoomRepository) GetAllPublic(ctx context.Context) ([]*model.Room, error
 	return rooms, nil
 }
 
-func (r *RoomRepository) Create(ctx context.Context, room *model.Room) error {
+func (r *RoomRepositoryImpl) Create(ctx context.Context, room *model.Room) error {
 	item, err := dynamodbattribute.MarshalMap(room)
 	if err != nil {
 		return err
@@ -128,7 +128,7 @@ func (r *RoomRepository) Create(ctx context.Context, room *model.Room) error {
 	return nil
 }
 
-func (r *RoomRepository) Delete(ctx context.Context, roomID string) error {
+func (r *RoomRepositoryImpl) Delete(ctx context.Context, roomID string) error {
 	input := &dynamodb.DeleteItemInput{
 		TableName: aws.String("Rooms"),
 		Key: map[string]*dynamodb.AttributeValue{
@@ -145,7 +145,7 @@ func (r *RoomRepository) Delete(ctx context.Context, roomID string) error {
 	return nil
 }
 
-func (r *RoomRepository) Update(ctx context.Context, room *model.Room) error {
+func (r *RoomRepositoryImpl) Update(ctx context.Context, room *model.Room) error {
 	input := &dynamodb.UpdateItemInput{
 		ExpressionAttributeNames: map[string]*string{
 			"#N": aws.String("name"),
