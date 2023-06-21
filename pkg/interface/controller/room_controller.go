@@ -75,7 +75,7 @@ func (rc *RoomController) CreateRoom(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"result": "room created successfully"})
+	ctx.JSON(http.StatusOK, gin.H{"result": room})
 }
 
 func (rc *RoomController) DeleteRoom(ctx *gin.Context) {
