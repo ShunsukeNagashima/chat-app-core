@@ -44,60 +44,6 @@ func TestGetAllRoomsByUserID(t *testing.T) {
 	mockRoomUserRepo.AssertExpectations(t)
 }
 
-func TestAddUserToRoom(t *testing.T) {
-	mockRoomUserRepo := new(mocks.RoomUserRepository)
-	mockUserRepo := new(mocks.UserRepository)
-	mockUser := &model.User{
-		UserID:   "1",
-		Username: "user-1",
-		Email:    "user-1@example.com",
-	}
-
-	testCases := []struct {
-		name        string
-		user        *model.User
-		userID      string
-		roomID      string
-		expectedErr error
-	}{
-		{
-			name:        "Success",
-			user:        mockUser,
-			userID:      mockUser.UserID,
-			roomID:      "1",
-			expectedErr: nil,
-		},
-		{
-			name:        "UserNotFound",
-			user:        nil,
-			userID:      "invalid_user_id",
-			roomID:      "1",
-			expectedErr: errors.New("user not found"),
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			mockUserRepo.On("GetByID", mock.Anything, tc.userID).Return(tc.user, tc.expectedErr)
-			if tc.user != nil {
-				mockRoomUserRepo.On("AddUserToRoom", mock.Anything, tc.roomID, tc.userID).Return(nil)
-			}
-
-			roomUserUsecase := NewRoomUserUsecase(mockRoomUserRepo, mockUserRepo)
-
-			err := roomUserUsecase.AddUserToRoom(context.Background(), tc.roomID, tc.userID)
-
-			if tc.expectedErr != nil {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-				mockUserRepo.AssertExpectations(t)
-				mockRoomUserRepo.AssertExpectations(t)
-			}
-		})
-	}
-}
-
 func TestRemoveUserFromRoom(t *testing.T) {
 	mockRoomUserRepo := new(mocks.RoomUserRepository)
 	mockUserRepo := new(mocks.UserRepository)

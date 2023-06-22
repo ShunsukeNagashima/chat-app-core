@@ -51,23 +51,6 @@ func (r *RoomUserRepositoryImpl) GetAllRoomsByUserID(ctx context.Context, userID
 	return rooms, nil
 }
 
-func (r *RoomUserRepositoryImpl) AddUserToRoom(ctx context.Context, roomID, userID string) error {
-	input := &dynamodb.PutItemInput{
-		TableName: aws.String(r.dbName),
-		Item: map[string]*dynamodb.AttributeValue{
-			"roomID": {
-				S: aws.String(roomID),
-			},
-			"userID": {
-				S: aws.String(userID),
-			},
-		},
-	}
-
-	_, err := r.db.PutItem(input)
-	return err
-}
-
 func (r *RoomUserRepositoryImpl) RemoveUserFromRoom(ctx context.Context, roomID, userID string) error {
 	input := &dynamodb.DeleteItemInput{
 		TableName: aws.String(r.dbName),

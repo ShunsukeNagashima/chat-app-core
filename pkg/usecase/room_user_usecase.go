@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
@@ -29,22 +28,6 @@ func (ru *RoomUserUsecaseImpl) GetAllRoomsByUserID(ctx context.Context, userID s
 	}
 
 	return roomUsers, nil
-}
-
-func (ru *RoomUserUsecaseImpl) AddUserToRoom(ctx context.Context, roomID, userID string) error {
-	user, err := ru.userRepo.GetByID(ctx, userID)
-	if err != nil {
-		return err
-	}
-
-	if user == nil {
-		return errors.New("user not found")
-	}
-
-	if err := ru.roomUserRepo.AddUserToRoom(ctx, roomID, userID); err != nil {
-		return fmt.Errorf("failed to add the user to the room: %w", err)
-	}
-	return nil
 }
 
 func (ru *RoomUserUsecaseImpl) RemoveUserFromRoom(ctx context.Context, roomID, userID string) error {
