@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -20,7 +22,7 @@ func NewRoomUserRepository(db *dynamodb.DynamoDB) repository.RoomUserRepository 
 	}
 }
 
-func (r *RoomUserRepositoryImpl) GetAllByUserID(userID string) ([]*model.Room, error) {
+func (r *RoomUserRepositoryImpl) GetAllRoomsByUserID(ctx context.Context, userID string) ([]*model.Room, error) {
 	input := &dynamodb.QueryInput{
 		TableName: aws.String("RoomUsers"),
 		IndexName: aws.String("UserIDIndex"),
@@ -47,4 +49,62 @@ func (r *RoomUserRepositoryImpl) GetAllByUserID(userID string) ([]*model.Room, e
 	}
 
 	return rooms, nil
+}
+
+func (r *RoomUserRepositoryImpl) AddUserToRoom(ctx context.Context, roomID, userID string) error {
+	input := &dynamodb.PutItemInput{
+		TableName: aws.String(r.dbName),
+		Item: map[string]*dynamodb.AttributeValue{
+			"roomID": {
+				S: aws.String(roomID),
+			},
+			"userID": {
+				S: aws.String(userID),
+			},
+		},
+	}
+
+	_, err := r.db.PutItem(input)
+	return err
+}
+
+func (r *RoomUserRepositoryImpl) RemoveUserFromRoom(ctx context.Context, roomID, userID string) error {
+	input := &dynamodb.DeleteItemInput{
+		TableName: aws.String(r.dbName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"roomID": {
+				S: aws.String(roomID),
+			},
+			"userID": {
+				S: aws.String(userID),
+			},
+		},
+	}
+
+	_, err := r.db.DeleteItem(input)
+	return err
+}
+
+func (r *RoomUserRepositoryImpl) AddUsersToRoom(ctx context.Context, roomID string, userIDs []string) error {
+	writeRequests := make([]*dynamodb.TransactWriteItem, len(userIDs))
+	for i, userID := range userIDs {
+		writeRequests[i] = &dynamodb.TransactWriteItem{
+			Put: &dynamodb.Put{
+				TableName: aws.String(r.dbName),
+				Item: map[string]*dynamodb.AttributeValue{
+					"roomID": {
+						S: aws.String(roomID),
+					},
+					"userID": {
+						S: aws.String(userID),
+					},
+				},
+			},
+		}
+	}
+	input := &dynamodb.TransactWriteItemsInput{
+		TransactItems: writeRequests,
+	}
+	_, err := r.db.TransactWriteItems(input)
+	return err
 }
