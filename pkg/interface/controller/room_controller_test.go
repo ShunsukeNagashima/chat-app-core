@@ -17,52 +17,36 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestCreateRoom_WhenRequestBindingFails(t *testing.T) {
+func TestCreateRoom(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	mockUsecase := new(mocks.RoomUsecase)
-	v := newTestValidator()
+	validator := newTestValidator()
 
-	rc := NewRoomController(mockUsecase, v)
-
-	reqBody, _ := json.Marshal(map[string]string{
-		"invalid_key": "invalid_value",
-	})
-
-	request, _ := http.NewRequest(http.MethodPost, "/rooms", bytes.NewBuffer(reqBody))
-	response := httptest.NewRecorder()
-
-	ctx, _ := gin.CreateTestContext(response)
-	ctx.Request = request
-
-	rc.CreateRoom(ctx)
-
-	assert.Equal(t, http.StatusBadRequest, response.Code)
-}
-
-func TestCreateRoom_WhenValidationFails(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	mockUsecase := new(mocks.RoomUsecase)
-	v := newTestValidator()
-
-	rc := NewRoomController(mockUsecase, v)
-
-	mockUsecase.On("CreateRoom", mock.Anything, mock.Anything).Return(errors.New("some error"))
+	uc := NewRoomController(mockUsecase, validator)
 
 	testCases := []struct {
-		name    string
-		reqBody map[string]string
+		name         string
+		reqBody      map[string]string
+		mockReturn   error
+		expectedCode int
 	}{
 		{
-			name: "Missing roomType",
+			name: "Success",
 			reqBody: map[string]string{
-				"name": "chat_room",
-			},
-		},
-		{
-			name: "Missing name",
-			reqBody: map[string]string{
+				"name":     "chat_room",
 				"roomType": "public",
 			},
+			mockReturn:   nil,
+			expectedCode: http.StatusCreated,
+		},
+		{
+			name: "Invalid roomType",
+			reqBody: map[string]string{
+				"name":     "chat_room",
+				"roomType": "invalid",
+			},
+			mockReturn:   nil,
+			expectedCode: http.StatusBadRequest,
 		},
 		{
 			name: "Invalid name",
@@ -70,6 +54,24 @@ func TestCreateRoom_WhenValidationFails(t *testing.T) {
 				"name":     "invalid%room",
 				"roomType": "public",
 			},
+			mockReturn:   nil,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "Missing roomType",
+			reqBody: map[string]string{
+				"name": "chat_room",
+			},
+			mockReturn:   nil,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "Missing name",
+			reqBody: map[string]string{
+				"roomType": "public",
+			},
+			mockReturn:   nil,
+			expectedCode: http.StatusBadRequest,
 		},
 	}
 
@@ -83,132 +85,99 @@ func TestCreateRoom_WhenValidationFails(t *testing.T) {
 			ctx, _ := gin.CreateTestContext(response)
 			ctx.Request = request
 
-			rc.CreateRoom(ctx)
+			mockUsecase.On("CreateRoom", mock.Anything, mock.Anything).Return(tc.mockReturn)
 
-			assert.Equal(t, http.StatusBadRequest, response.Code)
+			uc.CreateRoom(ctx)
+
+			assert.Equal(t, tc.expectedCode, response.Code)
+
+			if tc.expectedCode == http.StatusCreated {
+				mockUsecase.AssertExpectations(t)
+				var responseBody map[string]interface{}
+				json.Unmarshal(response.Body.Bytes(), &responseBody)
+
+				result, _ := responseBody["result"].(map[string]interface{})
+				t.Log(result)
+				assert.Equal(t, tc.reqBody["name"], result["name"])
+				assert.Equal(t, tc.reqBody["roomType"], result["room_type"])
+			}
 		})
 	}
 }
 
-func TestCreateRoom_WhenParseRoomTypeFails(t *testing.T) {
+func TestGetRoomByID(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	mockUsecase := new(mocks.RoomUsecase)
-	v := newTestValidator()
+	validator := newTestValidator()
 
-	rc := NewRoomController(mockUsecase, v)
+	uc := NewRoomController(mockUsecase, validator)
 
-	reqBody, _ := json.Marshal(map[string]string{
-		"name":     "chat_room",
-		"roomType": "invalid",
-	})
-
-	request, _ := http.NewRequest(http.MethodPost, "/rooms", bytes.NewBuffer(reqBody))
-	response := httptest.NewRecorder()
-
-	ctx, _ := gin.CreateTestContext(response)
-	ctx.Request = request
-
-	mockUsecase.On("CreateRoom", mock.Anything, mock.Anything).Return(nil)
-
-	rc.CreateRoom(ctx)
-
-	assert.Equal(t, http.StatusBadRequest, response.Code)
-}
-
-func TestCreateRoom_WhenExecutionSucceeds(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	mockUsecase := new(mocks.RoomUsecase)
-	v := newTestValidator()
-
-	rc := NewRoomController(mockUsecase, v)
-
-	reqBody, _ := json.Marshal(map[string]string{
-		"name":     "chat_room",
-		"roomType": "public",
-	})
-
-	request, _ := http.NewRequest(http.MethodPost, "/rooms", bytes.NewBuffer(reqBody))
-	response := httptest.NewRecorder()
-
-	ctx, _ := gin.CreateTestContext(response)
-	ctx.Request = request
-
-	mockUsecase.On("CreateRoom", mock.Anything, mock.Anything).Return(nil)
-
-	rc.CreateRoom(ctx)
-
-	mockUsecase.AssertExpectations(t)
-
-	assert.Equal(t, http.StatusOK, response.Code)
-}
-
-func TestGetRoomByID_WhenRoomExists(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	mockUsecase := new(mocks.RoomUsecase)
-	v := newTestValidator()
-
-	rc := NewRoomController(mockUsecase, v)
-
-	roomID := "1"
 	mockRoom := model.Room{
-		RoomID:   roomID,
+		RoomID:   "1",
 		Name:     "chat_room",
 		RoomType: model.Public,
 	}
 
-	mockUsecase.On("GetRoomByID", mock.Anything, roomID).Return(&mockRoom, nil)
+	testCases := []struct {
+		name         string
+		roomID       string
+		mockReturn   *model.Room
+		expectedErr  error
+		expectedCode int
+	}{
+		{
+			name:         "Success",
+			roomID:       "1",
+			mockReturn:   &mockRoom,
+			expectedErr:  nil,
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "Invalid roomID",
+			roomID:       "invalid",
+			mockReturn:   nil,
+			expectedErr:  errors.New("some error"),
+			expectedCode: http.StatusInternalServerError,
+		},
+	}
 
-	request, _ := http.NewRequest(http.MethodGet, "/rooms/"+roomID, nil)
-	response := httptest.NewRecorder()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			request, _ := http.NewRequest(http.MethodGet, "/rooms/"+tc.roomID, nil)
+			response := httptest.NewRecorder()
 
-	ctx, _ := gin.CreateTestContext(response)
-	ctx.Params = gin.Params{{Key: "roomID", Value: roomID}}
-	ctx.Request = request
+			ctx, _ := gin.CreateTestContext(response)
+			ctx.Params = gin.Params{{Key: "roomID", Value: tc.roomID}}
+			ctx.Request = request
 
-	rc.GetRoomByID(ctx)
+			mockUsecase.On("GetRoomByID", mock.Anything, tc.roomID).Return(tc.mockReturn, tc.expectedErr)
 
-	assert.Equal(t, http.StatusOK, response.Code)
+			uc.GetRoomByID(ctx)
 
-	var responseBody map[string]interface{}
-	json.Unmarshal(response.Body.Bytes(), &responseBody)
+			assert.Equal(t, tc.expectedCode, response.Code)
 
-	var resultRoom model.Room
-	roomBytes, _ := json.Marshal(responseBody["result"])
-	json.Unmarshal(roomBytes, &resultRoom)
+			if tc.expectedCode == http.StatusOK {
+				mockUsecase.AssertExpectations(t)
+				var responseBody map[string]interface{}
+				json.Unmarshal(response.Body.Bytes(), &responseBody)
 
-	assert.Equal(t, mockRoom, resultRoom)
-	mockUsecase.AssertExpectations(t)
+				var resultRoom model.Room
+				roomBytes, _ := json.Marshal(responseBody["result"])
+				json.Unmarshal(roomBytes, &resultRoom)
+
+				assert.Equal(t, mockRoom, resultRoom)
+			}
+		})
+	}
+
 }
 
-func TestGetRoomByID_InvalidRoomID(t *testing.T) {
+func TestGetAllPublicRooms(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	mockUsecase := new(mocks.RoomUsecase)
-	v := newTestValidator()
+	validator := newTestValidator()
 
-	rc := NewRoomController(mockUsecase, v)
-
-	roomID := "1"
-
-	mockUsecase.On("GetRoomByID", mock.Anything, roomID).Return(nil, errors.New("some error"))
-
-	request, _ := http.NewRequest(http.MethodGet, "/rooms/"+roomID, nil)
-	response := httptest.NewRecorder()
-
-	ctx, _ := gin.CreateTestContext(response)
-	ctx.Params = gin.Params{{Key: "roomID", Value: roomID}}
-	ctx.Request = request
-
-	rc.GetRoomByID(ctx)
-
-	assert.Equal(t, http.StatusInternalServerError, response.Code)
-}
-
-func TestGetAllPublicRooms_WhenRoomExists(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	mockUsecase := new(mocks.RoomUsecase)
-	v := newTestValidator()
-
-	rc := NewRoomController(mockUsecase, v)
+	uc := NewRoomController(mockUsecase, validator)
 
 	mockRooms := []*model.Room{
 		{
@@ -219,159 +188,187 @@ func TestGetAllPublicRooms_WhenRoomExists(t *testing.T) {
 		{
 			RoomID:   "2",
 			Name:     "chat_room_2",
-			RoomType: model.Public,
-		},
-		{
-			RoomID:   "3",
-			Name:     "chat_room_3",
-			RoomType: model.Public,
+			RoomType: model.Private,
 		},
 	}
 
-	mockUsecase.On("GetAllPublicRoom", mock.Anything).Return(mockRooms, nil)
+	testCases := []struct {
+		name         string
+		mockReturn   []*model.Room
+		expectedErr  error
+		expectedCode int
+	}{
+		{
+			name:         "Success",
+			mockReturn:   mockRooms,
+			expectedErr:  nil,
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "Empty slice returns",
+			mockReturn:   []*model.Room{},
+			expectedErr:  nil,
+			expectedCode: http.StatusOK,
+		},
+	}
 
-	request, _ := http.NewRequest(http.MethodGet, "/rooms", nil)
-	response := httptest.NewRecorder()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			request, _ := http.NewRequest(http.MethodGet, "/rooms", nil)
+			response := httptest.NewRecorder()
 
-	ctx, _ := gin.CreateTestContext(response)
-	ctx.Request = request
+			ctx, _ := gin.CreateTestContext(response)
+			ctx.Request = request
 
-	rc.GetAllPublicRoom(ctx)
+			mockUsecase.On("GetAllPublicRoom", mock.Anything).Return(tc.mockReturn, tc.expectedErr)
 
-	assert.Equal(t, http.StatusOK, response.Code)
+			uc.GetAllPublicRoom(ctx)
 
-	var responseBody map[string][]interface{}
-	json.Unmarshal(response.Body.Bytes(), &responseBody)
+			assert.Equal(t, tc.expectedCode, response.Code)
 
-	var resultRooms []*model.Room
-	roomBytes, _ := json.Marshal(responseBody["result"])
+			if tc.expectedCode == http.StatusOK {
+				mockUsecase.AssertExpectations(t)
+				var responseBody map[string]interface{}
+				json.Unmarshal(response.Body.Bytes(), &responseBody)
 
-	json.Unmarshal(roomBytes, &resultRooms)
+				var resultRooms []*model.Room
+				roomBytes, _ := json.Marshal(responseBody["result"])
+				json.Unmarshal(roomBytes, &resultRooms)
 
-	assert.Equal(t, mockRooms, resultRooms)
-	mockUsecase.AssertExpectations(t)
+				assert.Equal(t, mockRooms, resultRooms)
+			}
+		})
+	}
+
 }
 
-func TestGetAllPublicRooms_WhenEmptySliceReturns(t *testing.T) {
+func TestDeleteRoom(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	mockUsecase := new(mocks.RoomUsecase)
-	v := newTestValidator()
+	validator := newTestValidator()
 
-	rc := NewRoomController(mockUsecase, v)
+	uc := NewRoomController(mockUsecase, validator)
 
-	mockRooms := []*model.Room{}
+	testCases := []struct {
+		name         string
+		roomID       string
+		expectedErr  error
+		expectedCode int
+	}{
+		{
+			name:         "Success",
+			roomID:       "1",
+			expectedErr:  nil,
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "Invalid roomID",
+			roomID:       "invalid",
+			expectedErr:  errors.New("some error"),
+			expectedCode: http.StatusInternalServerError,
+		},
+	}
 
-	mockUsecase.On("GetAllPublicRoom", mock.Anything).Return(mockRooms, nil)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			request, _ := http.NewRequest(http.MethodDelete, "/rooms/"+tc.roomID, nil)
+			response := httptest.NewRecorder()
 
-	request, _ := http.NewRequest(http.MethodGet, "/rooms", nil)
-	response := httptest.NewRecorder()
+			ctx, _ := gin.CreateTestContext(response)
+			ctx.Params = gin.Params{{Key: "roomID", Value: tc.roomID}}
+			ctx.Request = request
 
-	ctx, _ := gin.CreateTestContext(response)
-	ctx.Request = request
+			mockUsecase.On("DeleteRoom", mock.Anything, tc.roomID).Return(tc.expectedErr)
 
-	rc.GetAllPublicRoom(ctx)
+			uc.DeleteRoom(ctx)
 
-	assert.Equal(t, http.StatusOK, response.Code)
+			assert.Equal(t, tc.expectedCode, response.Code)
 
-	var responseBody map[string][]interface{}
-	json.Unmarshal(response.Body.Bytes(), &responseBody)
+			if tc.expectedCode == http.StatusOK {
+				mockUsecase.AssertExpectations(t)
+				var responseBody map[string]interface{}
+				json.Unmarshal(response.Body.Bytes(), &responseBody)
 
-	var resultRooms []*model.Room
-	roomBytes, _ := json.Marshal(responseBody["result"])
+				assert.Equal(t, "room deleted successfully", responseBody["result"])
+			}
+		})
+	}
 
-	json.Unmarshal(roomBytes, &resultRooms)
-
-	assert.Equal(t, mockRooms, resultRooms)
-	mockUsecase.AssertExpectations(t)
 }
 
-func TestDeleteRoom_WhenExecutionSucceeds(t *testing.T) {
+func TestUpdateRoom(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	mockUsecase := new(mocks.RoomUsecase)
-	v := newTestValidator()
+	validator := newTestValidator()
 
-	rc := NewRoomController(mockUsecase, v)
+	uc := NewRoomController(mockUsecase, validator)
 
-	roomID := "1"
-	resultMsg := "room deleted successfully"
+	testCases := []struct {
+		name         string
+		roomID       string
+		reqBody      map[string]string
+		expectedErr  error
+		expectedCode int
+	}{
+		{
+			name:   "Success",
+			roomID: "1",
+			reqBody: map[string]string{
+				"name":     "chat_room_update",
+				"roomType": "public",
+			},
+			expectedErr:  nil,
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:   "Invalid roomType",
+			roomID: "1",
+			reqBody: map[string]string{
+				"name":     "chat_room_update",
+				"roomType": "invalid",
+			},
+			expectedErr:  nil,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:   "Invalid name",
+			roomID: "1",
+			reqBody: map[string]string{
+				"name":     "invalid%room",
+				"roomType": "public",
+			},
+			expectedErr:  nil,
+			expectedCode: http.StatusBadRequest,
+		},
+	}
 
-	mockUsecase.On("DeleteRoom", mock.Anything, roomID).Return(nil)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			reqBody, _ := json.Marshal(tc.reqBody)
 
-	request, _ := http.NewRequest(http.MethodDelete, "/rooms/"+roomID, nil)
-	response := httptest.NewRecorder()
+			request, _ := http.NewRequest(http.MethodPut, "/rooms/"+tc.roomID, bytes.NewBuffer(reqBody))
+			response := httptest.NewRecorder()
 
-	ctx, _ := gin.CreateTestContext(response)
-	ctx.Params = gin.Params{{Key: "roomID", Value: roomID}}
-	ctx.Request = request
+			ctx, _ := gin.CreateTestContext(response)
+			ctx.Params = gin.Params{{Key: "roomID", Value: tc.roomID}}
+			ctx.Request = request
 
-	rc.DeleteRoom(ctx)
+			mockUsecase.On("UpdateRoom", mock.Anything, mock.Anything).Return(tc.expectedErr)
 
-	assert.Equal(t, http.StatusOK, response.Code)
+			uc.UpdateRoom(ctx)
 
-	var responseBody map[string]string
-	json.Unmarshal(response.Body.Bytes(), &responseBody)
+			assert.Equal(t, tc.expectedCode, response.Code)
 
-	assert.Equal(t, resultMsg, responseBody["result"])
-	mockUsecase.AssertExpectations(t)
-}
+			if tc.expectedCode == http.StatusOK {
+				mockUsecase.AssertExpectations(t)
+				var responseBody map[string]interface{}
+				json.Unmarshal(response.Body.Bytes(), &responseBody)
 
-func TestDeleteRoom_WhenRoomDoesntExist(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	mockUsecase := new(mocks.RoomUsecase)
-	v := newTestValidator()
+				assert.Equal(t, "room updated successfully", responseBody["result"])
+			}
+		})
+	}
 
-	rc := NewRoomController(mockUsecase, v)
-
-	roomID := "1"
-
-	mockUsecase.On("DeleteRoom", mock.Anything, roomID).Return(errors.New("room not found"))
-
-	request, _ := http.NewRequest(http.MethodDelete, "/rooms/"+roomID, nil)
-	response := httptest.NewRecorder()
-
-	ctx, _ := gin.CreateTestContext(response)
-	ctx.Params = gin.Params{{Key: "roomID", Value: roomID}}
-	ctx.Request = request
-
-	rc.DeleteRoom(ctx)
-
-	assert.Equal(t, http.StatusInternalServerError, response.Code)
-}
-
-func TestUpdateRoom_WhenExecutionSucceeds(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	mockUsecase := new(mocks.RoomUsecase)
-	v := newTestValidator()
-
-	rc := NewRoomController(mockUsecase, v)
-
-	roomID := "1"
-	resultMsg := "room updated successfully"
-
-	reqBody, _ := json.Marshal(map[string]string{
-		"name":     "chat_room_update",
-		"roomType": "public",
-	})
-
-	request, _ := http.NewRequest(http.MethodPut, "/rooms/"+roomID, bytes.NewBuffer(reqBody))
-	request.Header.Set("Content-Type", "application/json")
-	response := httptest.NewRecorder()
-
-	ctx, _ := gin.CreateTestContext(response)
-	ctx.Params = gin.Params{{Key: "roomID", Value: roomID}}
-	ctx.Request = request
-
-	mockUsecase.On("UpdateRoom", mock.Anything, mock.Anything).Return(nil)
-
-	rc.UpdateRoom(ctx)
-
-	assert.Equal(t, http.StatusOK, response.Code)
-
-	var responseBody map[string]string
-	json.Unmarshal(response.Body.Bytes(), &responseBody)
-
-	assert.Equal(t, resultMsg, responseBody["result"])
-	mockUsecase.AssertExpectations(t)
 }
 
 func newTestValidator() *validator.Validate {
