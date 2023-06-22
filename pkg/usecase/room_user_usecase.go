@@ -12,12 +12,14 @@ import (
 type RoomUserUsecaseImpl struct {
 	roomUserRepo repository.RoomUserRepository
 	userRepo     repository.UserRepository
+	roomRepo     repository.RoomRepository
 }
 
-func NewRoomUserUsecase(roomUserRepo repository.RoomUserRepository, userRepo repository.UserRepository) usecase.RoomUserUsecase {
+func NewRoomUserUsecase(roomUserRepo repository.RoomUserRepository, userRepo repository.UserRepository, roomRepo repository.RoomRepository) usecase.RoomUserUsecase {
 	return &RoomUserUsecaseImpl{
 		roomUserRepo,
 		userRepo,
+		roomRepo,
 	}
 }
 
@@ -43,6 +45,14 @@ func (ru *RoomUserUsecaseImpl) AddUsersToRoom(ctx context.Context, roomID string
 		if err != nil {
 			return fmt.Errorf("failed to fetch the user with ID %s: %w", userID, err)
 		}
+	}
+
+	room, err := ru.roomRepo.GetById(ctx, roomID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch the room with ID %s: %w", roomID, err)
+	}
+	if room == nil {
+		return fmt.Errorf("room with the ID %s couldn't be found", roomID)
 	}
 
 	if err := ru.roomUserRepo.AddUsersToRoom(ctx, roomID, userIDs); err != nil {
