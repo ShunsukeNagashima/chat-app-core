@@ -73,9 +73,10 @@ func (rc *RoomController) CreateRoom(ctx *gin.Context) {
 
 	if err := rc.roomUsecase.CreateRoom(ctx, room); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"result": room})
+	ctx.JSON(http.StatusCreated, gin.H{"result": room})
 }
 
 func (rc *RoomController) DeleteRoom(ctx *gin.Context) {
