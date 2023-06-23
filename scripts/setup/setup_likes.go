@@ -7,6 +7,8 @@ import (
 )
 
 func SetupLikes() error {
+	tableName := "Likes"
+
 	sess, _ := session.NewSession(&aws.Config{
 		Region:   aws.String("us-west-2"),
 		Endpoint: aws.String("http://localhost:8000"),
@@ -40,7 +42,7 @@ func SetupLikes() error {
 			ReadCapacityUnits:  aws.Int64(10),
 			WriteCapacityUnits: aws.Int64(10),
 		},
-		TableName: aws.String("likes"),
+		TableName: aws.String(tableName),
 	})
 	if err != nil {
 		return err
@@ -56,7 +58,7 @@ func SetupLikes() error {
 				S: aws.String("sampleUserID"),
 			},
 		},
-		TableName: aws.String("likes"),
+		TableName: aws.String(tableName),
 	})
 	if err != nil {
 		return err

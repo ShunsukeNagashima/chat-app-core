@@ -7,6 +7,8 @@ import (
 )
 
 func SetupUsers() error {
+	tableName := "Users"
+
 	sess, _ := session.NewSession(&aws.Config{
 		Region:   aws.String("us-west-2"),
 		Endpoint: aws.String("http://localhost:8000"),
@@ -32,7 +34,7 @@ func SetupUsers() error {
 			ReadCapacityUnits:  aws.Int64(10),
 			WriteCapacityUnits: aws.Int64(10),
 		},
-		TableName: aws.String("users"),
+		TableName: aws.String(tableName),
 	})
 	if err != nil {
 		return err
@@ -44,11 +46,11 @@ func SetupUsers() error {
 			"userID": {
 				S: aws.String("sampleUserID"),
 			},
-			"username": {
+			"userName": {
 				S: aws.String("Sample User"),
 			},
 		},
-		TableName: aws.String("users"),
+		TableName: aws.String(tableName),
 	})
 	if err != nil {
 		return err

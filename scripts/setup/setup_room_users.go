@@ -7,6 +7,8 @@ import (
 )
 
 func SetupRoomUsers() error {
+	tableName := "RoomUsers"
+
 	sess, _ := session.NewSession(&aws.Config{
 		Region:   aws.String("us-west-2"),
 		Endpoint: aws.String("http://localhost:8000"),
@@ -18,7 +20,7 @@ func SetupRoomUsers() error {
 	_, err := svc.CreateTable(&dynamodb.CreateTableInput{
 		AttributeDefinitions: []*dynamodb.AttributeDefinition{
 			{
-				AttributeName: aws.String("roomdID"),
+				AttributeName: aws.String("roomID"),
 				AttributeType: aws.String("S"),
 			},
 			{
@@ -28,7 +30,7 @@ func SetupRoomUsers() error {
 		},
 		KeySchema: []*dynamodb.KeySchemaElement{
 			{
-				AttributeName: aws.String("roomdID"),
+				AttributeName: aws.String("roomID"),
 				KeyType:       aws.String("HASH"),
 			},
 			{
@@ -62,7 +64,7 @@ func SetupRoomUsers() error {
 			ReadCapacityUnits:  aws.Int64(10),
 			WriteCapacityUnits: aws.Int64(10),
 		},
-		TableName: aws.String("room-users"),
+		TableName: aws.String(tableName),
 	})
 	if err != nil {
 		return err
@@ -71,14 +73,14 @@ func SetupRoomUsers() error {
 	// テストデータの投入
 	_, err = svc.PutItem(&dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
-			"messageID": {
-				S: aws.String("sampleMessageID"),
+			"roomID": {
+				S: aws.String("sampleRoomID"),
 			},
 			"userID": {
 				S: aws.String("sampleUserID"),
 			},
 		},
-		TableName: aws.String("room-users"),
+		TableName: aws.String(tableName),
 	})
 	if err != nil {
 		return err

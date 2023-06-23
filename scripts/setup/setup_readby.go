@@ -56,7 +56,7 @@ func SetupReadby() error {
 				S: aws.String("sampleUserID"),
 			},
 		},
-		TableName: aws.String("readby"),
+		TableName: aws.String("Readby"),
 	})
 	if err != nil {
 		return err

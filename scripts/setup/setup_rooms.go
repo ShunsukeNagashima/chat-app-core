@@ -7,6 +7,8 @@ import (
 )
 
 func SetUpRooms() error {
+	tableName := "Rooms"
+
 	sess, _ := session.NewSession(&aws.Config{
 		Region:   aws.String("us-west-2"),
 		Endpoint: aws.String("http://localhost:8000"),
@@ -54,7 +56,7 @@ func SetUpRooms() error {
 			ReadCapacityUnits:  aws.Int64(10),
 			WriteCapacityUnits: aws.Int64(10),
 		},
-		TableName: aws.String("rooms"),
+		TableName: aws.String(tableName),
 	})
 	if err != nil {
 		return err
@@ -73,7 +75,7 @@ func SetUpRooms() error {
 				S: aws.String("Public"),
 			},
 		},
-		TableName: aws.String("rooms"),
+		TableName: aws.String(tableName),
 	})
 	if err != nil {
 		return err

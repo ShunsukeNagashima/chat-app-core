@@ -7,6 +7,8 @@ import (
 )
 
 func SetupMessages() error {
+	tableName := "Messages"
+
 	sess, _ := session.NewSession(&aws.Config{
 		Region:   aws.String("us-west-2"),
 		Endpoint: aws.String("http://localhost:8000"),
@@ -40,7 +42,7 @@ func SetupMessages() error {
 			ReadCapacityUnits:  aws.Int64(10),
 			WriteCapacityUnits: aws.Int64(10),
 		},
-		TableName: aws.String("messages"),
+		TableName: aws.String(tableName),
 	})
 	if err != nil {
 		return err
@@ -65,7 +67,7 @@ func SetupMessages() error {
 				S: aws.String("sampleSenderID"),
 			},
 		},
-		TableName: aws.String("messages"),
+		TableName: aws.String(tableName),
 	})
 	if err != nil {
 		return err
