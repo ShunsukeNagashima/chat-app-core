@@ -19,10 +19,7 @@ import (
 
 func TestCreateRoom(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	mockUsecase := new(mocks.RoomUsecase)
 	validator := newTestValidator()
-
-	uc := NewRoomController(mockUsecase, validator)
 
 	testCases := []struct {
 		name         string
@@ -35,6 +32,7 @@ func TestCreateRoom(t *testing.T) {
 			reqBody: map[string]string{
 				"name":     "chat_room",
 				"roomType": "public",
+				"ownerID":  "1",
 			},
 			mockReturn:   nil,
 			expectedCode: http.StatusCreated,
@@ -44,6 +42,7 @@ func TestCreateRoom(t *testing.T) {
 			reqBody: map[string]string{
 				"name":     "chat_room",
 				"roomType": "invalid",
+				"ownerID":  "1",
 			},
 			mockReturn:   nil,
 			expectedCode: http.StatusBadRequest,
@@ -53,6 +52,7 @@ func TestCreateRoom(t *testing.T) {
 			reqBody: map[string]string{
 				"name":     "invalid%room",
 				"roomType": "public",
+				"ownerID":  "1",
 			},
 			mockReturn:   nil,
 			expectedCode: http.StatusBadRequest,
@@ -60,7 +60,8 @@ func TestCreateRoom(t *testing.T) {
 		{
 			name: "Missing roomType",
 			reqBody: map[string]string{
-				"name": "chat_room",
+				"name":    "chat_room",
+				"ownerID": "1",
 			},
 			mockReturn:   nil,
 			expectedCode: http.StatusBadRequest,
@@ -68,6 +69,16 @@ func TestCreateRoom(t *testing.T) {
 		{
 			name: "Missing name",
 			reqBody: map[string]string{
+				"roomType": "public",
+				"ownerID":  "1",
+			},
+			mockReturn:   nil,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "Missing ownerID",
+			reqBody: map[string]string{
+				"name":     "chat_room",
 				"roomType": "public",
 			},
 			mockReturn:   nil,
@@ -77,6 +88,8 @@ func TestCreateRoom(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			mockUsecase := new(mocks.RoomUsecase)
+
 			reqBody, _ := json.Marshal(tc.reqBody)
 
 			request, _ := http.NewRequest(http.MethodPost, "/rooms", bytes.NewBuffer(reqBody))
@@ -85,7 +98,9 @@ func TestCreateRoom(t *testing.T) {
 			ctx, _ := gin.CreateTestContext(response)
 			ctx.Request = request
 
-			mockUsecase.On("CreateRoom", mock.Anything, mock.Anything).Return(tc.mockReturn)
+			mockUsecase.On("CreateRoom", mock.Anything, mock.Anything, mock.Anything).Return(tc.mockReturn)
+
+			uc := NewRoomController(mockUsecase, validator)
 
 			uc.CreateRoom(ctx)
 

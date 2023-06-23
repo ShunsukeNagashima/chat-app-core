@@ -10,25 +10,27 @@ import (
 )
 
 type RoomUsecaseImpl struct {
-	repo repository.RoomRepository
+	roomRepo repository.RoomRepository
+	userRepo repository.UserRepository
 }
 
-func NewRoomUsecase(repo repository.RoomRepository) usecase.RoomUsecase {
+func NewRoomUsecase(roomRepo repository.RoomRepository, userRepo repository.UserRepository) usecase.RoomUsecase {
 	return &RoomUsecaseImpl{
-		repo,
+		roomRepo,
+		userRepo,
 	}
 }
 
 func (ru *RoomUsecaseImpl) GetRoomByID(ctx context.Context, roomID string) (*model.Room, error) {
-	return ru.repo.GetById(ctx, roomID)
+	return ru.roomRepo.GetById(ctx, roomID)
 }
 
 func (ru *RoomUsecaseImpl) GetAllPublicRoom(ctx context.Context) ([]*model.Room, error) {
-	return ru.repo.GetAllPublic(ctx)
+	return ru.roomRepo.GetAllPublic(ctx)
 }
 
-func (ru *RoomUsecaseImpl) CreateRoom(ctx context.Context, room *model.Room) error {
-	existingRoom, err := ru.repo.GetByName(ctx, room.Name)
+func (ru *RoomUsecaseImpl) CreateRoom(ctx context.Context, room *model.Room, ownerID string) error {
+	existingRoom, err := ru.roomRepo.GetByName(ctx, room.Name)
 	if err != nil {
 		return err
 	}
@@ -36,7 +38,15 @@ func (ru *RoomUsecaseImpl) CreateRoom(ctx context.Context, room *model.Room) err
 		return fmt.Errorf("name of chat room '%s' is duplicated", room.Name)
 	}
 
-	if err := ru.repo.Create(ctx, room); err != nil {
+	owner, err := ru.userRepo.GetByID(ctx, ownerID)
+	if err != nil {
+		return err
+	}
+	if owner == nil {
+		return fmt.Errorf("user with the ID '%s' couldn't be found", ownerID)
+	}
+
+	if err := ru.roomRepo.CreateAndAddUser(ctx, room, ownerID); err != nil {
 		return err
 	}
 
@@ -44,15 +54,15 @@ func (ru *RoomUsecaseImpl) CreateRoom(ctx context.Context, room *model.Room) err
 }
 
 func (ru *RoomUsecaseImpl) DeleteRoom(ctx context.Context, roomID string) error {
-	room, err := ru.repo.GetById(ctx, roomID)
+	room, err := ru.roomRepo.GetById(ctx, roomID)
 	if err != nil {
 		return err
 	}
 	if room == nil {
-		return fmt.Errorf("room with the ID %s couldn't be found", roomID)
+		return fmt.Errorf("room with the ID '%s' couldn't be found", roomID)
 	}
 
-	if err := ru.repo.Delete(ctx, roomID); err != nil {
+	if err := ru.roomRepo.Delete(ctx, roomID); err != nil {
 		return err
 	}
 
@@ -60,7 +70,7 @@ func (ru *RoomUsecaseImpl) DeleteRoom(ctx context.Context, roomID string) error 
 }
 
 func (ru *RoomUsecaseImpl) UpdateRoom(ctx context.Context, room *model.Room) error {
-	existingRoom, err := ru.repo.GetByName(ctx, room.Name)
+	existingRoom, err := ru.roomRepo.GetByName(ctx, room.Name)
 	if err != nil {
 		return err
 	}
@@ -68,7 +78,7 @@ func (ru *RoomUsecaseImpl) UpdateRoom(ctx context.Context, room *model.Room) err
 		return fmt.Errorf("name of chat room '%s' is duplicated", room.Name)
 	}
 
-	if err := ru.repo.Update(ctx, room); err != nil {
+	if err := ru.roomRepo.Update(ctx, room); err != nil {
 		return err
 	}
 

@@ -12,20 +12,22 @@ import (
 )
 
 type RoomRepositoryImpl struct {
-	db     *dynamodb.DynamoDB
-	dbName string
+	db             *dynamodb.DynamoDB
+	roomDBName     string
+	roomUserDBName string
 }
 
 func NewRoomRepository(db *dynamodb.DynamoDB) repository.RoomRepository {
 	return &RoomRepositoryImpl{
 		db,
 		"Rooms",
+		"RoomUsers",
 	}
 }
 
 func (r *RoomRepositoryImpl) GetById(ctx context.Context, roomID string) (*model.Room, error) {
 	input := &dynamodb.GetItemInput{
-		TableName: aws.String(r.dbName),
+		TableName: aws.String(r.roomDBName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"roomID": {
 				S: aws.String(roomID),
@@ -53,7 +55,7 @@ func (r *RoomRepositoryImpl) GetById(ctx context.Context, roomID string) (*model
 
 func (r *RoomRepositoryImpl) GetByName(ctx context.Context, name string) (*model.Room, error) {
 	input := &dynamodb.QueryInput{
-		TableName: aws.String(r.dbName),
+		TableName: aws.String(r.roomDBName),
 		IndexName: aws.String("NameIndex"),
 		KeyConditions: map[string]*dynamodb.Condition{
 			"name": {
@@ -88,7 +90,7 @@ func (r *RoomRepositoryImpl) GetByName(ctx context.Context, name string) (*model
 
 func (r *RoomRepositoryImpl) GetAllPublic(ctx context.Context) ([]*model.Room, error) {
 	input := &dynamodb.ScanInput{
-		TableName:        aws.String(r.dbName),
+		TableName:        aws.String(r.roomDBName),
 		FilterExpression: aws.String("room_type = :public"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":public": {
@@ -110,22 +112,44 @@ func (r *RoomRepositoryImpl) GetAllPublic(ctx context.Context) ([]*model.Room, e
 	return rooms, nil
 }
 
-func (r *RoomRepositoryImpl) Create(ctx context.Context, room *model.Room) error {
-	item, err := dynamodbattribute.MarshalMap(room)
+func (r *RoomRepositoryImpl) CreateAndAddUser(ctx context.Context, room *model.Room, ownerID string) error {
+	transactItems := []*dynamodb.TransactWriteItem{}
+
+	// create room
+	roomItem, err := dynamodbattribute.MarshalMap(room)
 	if err != nil {
 		return err
 	}
 
-	input := &dynamodb.PutItemInput{
-		TableName: aws.String("Rooms"),
-		Item:      item,
+	transactItems = append(transactItems, &dynamodb.TransactWriteItem{
+		Put: &dynamodb.Put{
+			TableName: aws.String(r.roomDBName),
+			Item:      roomItem,
+		},
+	})
+
+	// add owner to room
+	roomUserItem := map[string]*dynamodb.AttributeValue{
+		"roomID": {
+			S: aws.String(room.RoomID),
+		},
+		"userID": {
+			S: aws.String(ownerID),
+		},
 	}
 
-	_, err = r.db.PutItem(input)
-	if err != nil {
-		return err
-	}
-	return nil
+	transactItems = append(transactItems, &dynamodb.TransactWriteItem{
+		Put: &dynamodb.Put{
+			TableName: aws.String(r.roomUserDBName),
+			Item:      roomUserItem,
+		},
+	})
+
+	_, err = r.db.TransactWriteItems(&dynamodb.TransactWriteItemsInput{
+		TransactItems: transactItems,
+	})
+
+	return err
 }
 
 func (r *RoomRepositoryImpl) Delete(ctx context.Context, roomID string) error {
@@ -159,7 +183,7 @@ func (r *RoomRepositoryImpl) Update(ctx context.Context, room *model.Room) error
 				S: aws.String(string(room.RoomType)),
 			},
 		},
-		TableName: aws.String(r.dbName),
+		TableName: aws.String(r.roomDBName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"roomID": {
 				S: aws.String(room.RoomID),

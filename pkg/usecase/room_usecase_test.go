@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
@@ -12,15 +12,16 @@ import (
 )
 
 func TestGetRoomByID(t *testing.T) {
-	mockRepo := new(mocks.RoomRepository)
+	mockRoomRepo := new(mocks.RoomRepository)
+	mockUserRepo := new(mocks.UserRepository)
 	mockRoom := &model.Room{
 		RoomID:   "1",
 		Name:     "Room1",
 		RoomType: model.Public,
 	}
 
-	mockRepo.On("GetById", mock.Anything, mockRoom.RoomID).Return(mockRoom, nil)
-	roomUsecase := NewRoomUsecase(mockRepo)
+	mockRoomRepo.On("GetById", mock.Anything, mockRoom.RoomID).Return(mockRoom, nil)
+	roomUsecase := NewRoomUsecase(mockRoomRepo, mockUserRepo)
 
 	room, err := roomUsecase.GetRoomByID(context.Background(), mockRoom.RoomID)
 
@@ -29,11 +30,12 @@ func TestGetRoomByID(t *testing.T) {
 	assert.Equal(t, mockRoom.RoomID, room.RoomID)
 	assert.Equal(t, mockRoom.Name, room.Name)
 	assert.Equal(t, mockRoom.RoomType, room.RoomType)
-	mockRepo.AssertExpectations(t)
+	mockRoomRepo.AssertExpectations(t)
 }
 
 func TestGetAllPublicRoom(t *testing.T) {
 	mockRepo := new(mocks.RoomRepository)
+	mockUserRepo := new(mocks.UserRepository)
 	mockRooms := []*model.Room{
 		{
 			RoomID:   "1",
@@ -48,7 +50,7 @@ func TestGetAllPublicRoom(t *testing.T) {
 	}
 
 	mockRepo.On("GetAllPublic", mock.Anything).Return(mockRooms, nil)
-	roomUsecase := NewRoomUsecase(mockRepo)
+	roomUsecase := NewRoomUsecase(mockRepo, mockUserRepo)
 
 	rooms, err := roomUsecase.GetAllPublicRoom(context.Background())
 
@@ -64,46 +66,82 @@ func TestGetAllPublicRoom(t *testing.T) {
 }
 
 func TestCreateRoom(t *testing.T) {
-	mockRepo := new(mocks.RoomRepository)
 	mockRoom := &model.Room{
 		RoomID:   "1",
 		Name:     "Room1",
 		RoomType: model.Public,
 	}
 
-	mockRepo.On("GetByName", mock.Anything, mockRoom.Name).Return(nil, nil)
-
-	mockRepo.On("Create", mock.Anything, mockRoom).Return(nil)
-
-	roomUsecase := NewRoomUsecase(mockRepo)
-
-	err := roomUsecase.CreateRoom(context.Background(), mockRoom)
-
-	assert.NoError(t, err)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestCreateRoom_AlreadyExists(t *testing.T) {
-	mockRepo := new(mocks.RoomRepository)
-	mockRoom := &model.Room{
-		RoomID:   "1",
-		Name:     "Room1",
-		RoomType: model.Public,
+	mockUser := &model.User{
+		UserID:   "1",
+		Username: "user-1",
+		Email:    "user-1@example.com",
 	}
 
-	mockRepo.On("GetByName", mock.Anything, mockRoom.Name).Return(mockRoom, nil)
+	testCases := []struct {
+		name                   string
+		room                   *model.Room
+		ownerID                string
+		mockRoomRepoReturn     *model.Room
+		mockUserRepoReturn     *model.User
+		mockRoomUserRepoReturn error
+		expectedErr            error
+	}{
+		{
+			name:                   "Success",
+			room:                   mockRoom,
+			ownerID:                "1",
+			mockRoomRepoReturn:     nil,
+			mockUserRepoReturn:     mockUser,
+			mockRoomUserRepoReturn: nil,
+			expectedErr:            nil,
+		},
+		{
+			name:                   "Invalid OwnerID",
+			room:                   mockRoom,
+			ownerID:                "invalid_ownerID",
+			mockRoomRepoReturn:     nil,
+			mockUserRepoReturn:     nil,
+			mockRoomUserRepoReturn: nil,
+			expectedErr:            errors.New("user with the ID 'invalid_ownerID' couldn't be found"),
+		},
+		{
+			name:                   "Duplicated Room Name",
+			room:                   mockRoom,
+			ownerID:                "1",
+			mockRoomRepoReturn:     mockRoom,
+			mockUserRepoReturn:     nil,
+			mockRoomUserRepoReturn: nil,
+			expectedErr:            errors.New("name of chat room 'Room1' is duplicated"),
+		},
+	}
 
-	roomUsecase := NewRoomUsecase(mockRepo)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockRoomRepo := new(mocks.RoomRepository)
+			mockUserRepo := new(mocks.UserRepository)
 
-	err := roomUsecase.CreateRoom(context.Background(), mockRoom)
+			mockRoomRepo.On("GetByName", mock.Anything, tc.room.Name).Return(tc.mockRoomRepoReturn, nil)
+			mockUserRepo.On("GetByID", mock.Anything, tc.ownerID).Return(tc.mockUserRepoReturn, nil)
+			mockRoomRepo.On("CreateAndAddUser", mock.Anything, tc.room, tc.ownerID).Return(nil)
 
-	assert.Error(t, err)
-	assert.EqualError(t, err, fmt.Errorf("name of chat room '%s' is duplicated", mockRoom.Name).Error())
-	mockRepo.AssertExpectations(t)
+			roomUsecase := NewRoomUsecase(mockRoomRepo, mockUserRepo)
+
+			err := roomUsecase.CreateRoom(context.Background(), tc.room, tc.ownerID)
+
+			if tc.expectedErr != nil {
+				assert.Error(t, err)
+				assert.EqualError(t, err, tc.expectedErr.Error())
+			} else {
+				assert.NoError(t, err)
+				mockRoomRepo.AssertExpectations(t)
+				mockUserRepo.AssertExpectations(t)
+			}
+		})
+	}
 }
 
 func TestDeleteRoom(t *testing.T) {
-	mockRepo := new(mocks.RoomRepository)
 	roomID := "1"
 
 	mockRoom := &model.Room{
@@ -112,73 +150,103 @@ func TestDeleteRoom(t *testing.T) {
 		RoomType: model.Public,
 	}
 
-	mockRepo.On("GetById", mock.Anything, roomID).Return(mockRoom, nil)
+	testCases := []struct {
+		name               string
+		roomID             string
+		mockRoomRepoReturn *model.Room
+		expectedErr        error
+	}{
+		{
+			name:               "Success",
+			roomID:             roomID,
+			mockRoomRepoReturn: mockRoom,
+			expectedErr:        nil,
+		},
+		{
+			name:               "Invalid RoomID",
+			roomID:             "invalid_roomID",
+			mockRoomRepoReturn: nil,
+			expectedErr:        errors.New("room with the ID 'invalid_roomID' couldn't be found"),
+		},
+	}
 
-	mockRepo.On("Delete", mock.Anything, roomID).Return(nil)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockRoomRepo := new(mocks.RoomRepository)
+			mockUserRepo := new(mocks.UserRepository)
 
-	roomUsecase := NewRoomUsecase(mockRepo)
+			mockRoomRepo.On("GetById", mock.Anything, tc.roomID).Return(tc.mockRoomRepoReturn, nil)
+			mockRoomRepo.On("Delete", mock.Anything, tc.roomID).Return(nil)
 
-	err := roomUsecase.DeleteRoom(context.Background(), roomID)
+			roomUsecase := NewRoomUsecase(mockRoomRepo, mockUserRepo)
 
-	assert.NoError(t, err)
-	mockRepo.AssertExpectations(t)
-}
+			err := roomUsecase.DeleteRoom(context.Background(), tc.roomID)
 
-func TestDeleteRoom_NotExist(t *testing.T) {
-	mockRepo := new(mocks.RoomRepository)
-	roomID := "1"
-
-	mockRepo.On("GetById", mock.Anything, roomID).Return(nil, nil)
-
-	roomUsecase := NewRoomUsecase(mockRepo)
-
-	err := roomUsecase.DeleteRoom(context.Background(), roomID)
-
-	assert.Error(t, err)
-	assert.EqualError(t, err, fmt.Errorf("room with the ID %s couldn't be found", roomID).Error())
-	mockRepo.AssertExpectations(t)
+			if tc.expectedErr != nil {
+				assert.Error(t, err)
+				assert.EqualError(t, err, tc.expectedErr.Error())
+			} else {
+				assert.NoError(t, err)
+				mockRoomRepo.AssertExpectations(t)
+			}
+		})
+	}
 }
 
 func TestUpdateRoom(t *testing.T) {
-	mockRepo := new(mocks.RoomRepository)
-	roomID := "1"
-	roomName := "Room1"
-
 	mockRoom := &model.Room{
-		RoomID:   roomID,
-		Name:     roomName,
+		RoomID:   "1",
+		Name:     "Room1",
 		RoomType: model.Public,
 	}
 
-	mockRepo.On("GetByName", mock.Anything, roomName).Return(nil, nil)
-	mockRepo.On("Update", mock.Anything, mock.AnythingOfType("*model.Room")).Return(nil)
-
-	roomUsecase := NewRoomUsecase(mockRepo)
-
-	err := roomUsecase.UpdateRoom(context.Background(), mockRoom)
-
-	assert.NoError(t, err)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestUpdateRoom_DuplicateName(t *testing.T) {
-	mockRepo := new(mocks.RoomRepository)
-	roomID := "1"
-	roomName := "Room1"
-
-	mockRoom := &model.Room{
-		RoomID:   roomID,
-		Name:     roomName,
-		RoomType: model.Public,
+	testCases := []struct {
+		name                string
+		room                *model.Room
+		expectedErr         error
+		mockGetByNameReturn *model.Room
+	}{
+		{
+			name: "Success",
+			room: &model.Room{
+				RoomID:   mockRoom.RoomID,
+				Name:     mockRoom.Name + "updated",
+				RoomType: model.Private,
+			},
+			expectedErr:         nil,
+			mockGetByNameReturn: nil,
+		},
+		{
+			name: "Duplicated Room Name With Different RoomID",
+			room: &model.Room{
+				RoomID:   "2",
+				Name:     mockRoom.Name,
+				RoomType: model.Private,
+			},
+			expectedErr:         errors.New("name of chat room 'Room1' is duplicated"),
+			mockGetByNameReturn: mockRoom,
+		},
 	}
 
-	mockRepo.On("GetByName", mock.Anything, roomName).Return(&model.Room{RoomID: "2", Name: roomName, RoomType: model.Public}, nil)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockRoomRepo := new(mocks.RoomRepository)
+			mockUserRepo := new(mocks.UserRepository)
 
-	roomUsecase := NewRoomUsecase(mockRepo)
+			mockRoomRepo.On("GetByName", mock.Anything, tc.room.Name).Return(tc.mockGetByNameReturn, nil)
+			mockRoomRepo.On("Update", mock.Anything, tc.room).Return(nil)
 
-	err := roomUsecase.UpdateRoom(context.Background(), mockRoom)
+			roomUsecase := NewRoomUsecase(mockRoomRepo, mockUserRepo)
 
-	assert.Error(t, err)
-	assert.EqualError(t, err, fmt.Errorf("name of chat room '%s' is duplicated", roomName).Error())
-	mockRepo.AssertExpectations(t)
+			err := roomUsecase.UpdateRoom(context.Background(), tc.room)
+
+			if tc.expectedErr != nil {
+				assert.Error(t, err)
+				assert.EqualError(t, err, tc.expectedErr.Error())
+			} else {
+				assert.NoError(t, err)
+				mockRoomRepo.AssertExpectations(t)
+			}
+		})
+	}
 }

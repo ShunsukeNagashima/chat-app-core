@@ -14,13 +14,13 @@ type RoomRepository struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, room
-func (_m *RoomRepository) Create(ctx context.Context, room *model.Room) error {
-	ret := _m.Called(ctx, room)
+// CreateAndAddUser provides a mock function with given fields: ctx, room, ownerID
+func (_m *RoomRepository) CreateAndAddUser(ctx context.Context, room *model.Room, ownerID string) error {
+	ret := _m.Called(ctx, room, ownerID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *model.Room) error); ok {
-		r0 = rf(ctx, room)
+	if rf, ok := ret.Get(0).(func(context.Context, *model.Room, string) error); ok {
+		r0 = rf(ctx, room, ownerID)
 	} else {
 		r0 = ret.Error(0)
 	}
