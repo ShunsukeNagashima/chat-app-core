@@ -14,13 +14,13 @@ type UserUsecase struct {
 	mock.Mock
 }
 
-// CreateUser provides a mock function with given fields: ctx, user
-func (_m *UserUsecase) CreateUser(ctx context.Context, user *model.User) error {
-	ret := _m.Called(ctx, user)
+// CreateUser provides a mock function with given fields: ctx, user, idToken
+func (_m *UserUsecase) CreateUser(ctx context.Context, user *model.User, idToken string) error {
+	ret := _m.Called(ctx, user, idToken)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *model.User) error); ok {
-		r0 = rf(ctx, user)
+	if rf, ok := ret.Get(0).(func(context.Context, *model.User, string) error); ok {
+		r0 = rf(ctx, user, idToken)
 	} else {
 		r0 = ret.Error(0)
 	}

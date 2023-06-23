@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/usecase"
 )
@@ -24,8 +23,10 @@ func NewUserController(userUsecase usecase.UserUsecase, validator *validator.Val
 
 func (uc *UserController) CreateUser(ctx *gin.Context) {
 	var req struct {
-		Name  string `json:"name" validate:"required,min=1,max=30"`
-		Email string `json:"email" validate:"required,email"`
+		UserID  string `json:"userID" validate:"required"`
+		Name    string `json:"name" validate:"required,min=1,max=30"`
+		Email   string `json:"email" validate:"required,email"`
+		IDToken string `json:"idToken" validate:"required"`
 	}
 
 	if err := ctx.BindJSON(&req); err != nil {
@@ -39,12 +40,12 @@ func (uc *UserController) CreateUser(ctx *gin.Context) {
 	}
 
 	user := &model.User{
-		UserID:   uuid.New().String(),
+		UserID:   req.UserID,
 		Username: req.Name,
 		Email:    req.Email,
 	}
 
-	if err := uc.userUsecase.CreateUser(ctx.Request.Context(), user); err != nil {
+	if err := uc.userUsecase.CreateUser(ctx.Request.Context(), user, req.IDToken); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

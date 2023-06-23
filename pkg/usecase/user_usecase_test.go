@@ -43,11 +43,13 @@ func TestCreateUser(t *testing.T) {
 		Email:    "user-1@example.com",
 	}
 
+	idToken := "test_id_token"
+
 	mockRepo.On("Create", mock.Anything, mockUser).Return(nil)
 	mockAuth.On("GetFirebaseUser", mock.Anything, mockUser.UserID).Return(&auth.Token{UID: "1"}, nil)
 
 	userUsecase := NewUserUsecase(mockRepo, mockAuth)
-	err := userUsecase.CreateUser(context.Background(), mockUser)
+	err := userUsecase.CreateUser(context.Background(), mockUser, idToken)
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
@@ -63,10 +65,12 @@ func TestCreateUser_WhenIDIsntMatch(t *testing.T) {
 		Email:    "user-1@example.com",
 	}
 
-	mockAuth.On("GetFirebaseUser", mock.Anything, mockUser.UserID).Return(&auth.Token{UID: "2"}, nil)
+	idToken := "test_id_token"
+
+	mockAuth.On("GetFirebaseUser", mock.Anything, idToken).Return(&auth.Token{UID: "2"}, nil)
 
 	userUsecase := NewUserUsecase(mockRepo, mockAuth)
-	err := userUsecase.CreateUser(context.Background(), mockUser)
+	err := userUsecase.CreateUser(context.Background(), mockUser, idToken)
 
 	assert.Error(t, err)
 	assert.EqualError(t, err, "provided user ID does not match the user ID in Firebase token")

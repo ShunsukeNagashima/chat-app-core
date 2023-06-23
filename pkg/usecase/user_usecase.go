@@ -22,8 +22,8 @@ func NewUserUsecase(repo repository.UserRepository, firebaseAuth auth.FirebaseAu
 	}
 }
 
-func (uu *UserUsecaseImpl) CreateUser(ctx context.Context, user *model.User) error {
-	token, err := uu.firebaseAuth.GetFirebaseUser(ctx, user.UserID)
+func (uu *UserUsecaseImpl) CreateUser(ctx context.Context, user *model.User, idToken string) error {
+	token, err := uu.firebaseAuth.GetFirebaseUser(ctx, idToken)
 	if err != nil {
 		return err
 	}
