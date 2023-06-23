@@ -10,9 +10,9 @@ const (
 )
 
 type Room struct {
-	RoomID   string   `json:"room_id"`
+	RoomID   string   `json:"roomId"`
 	Name     string   `json:"name"`
-	RoomType RoomType `json:"room_type"`
+	RoomType RoomType `json:"roomType"`
 }
 
 func ParseRoomType(s string) (RoomType, error) {
