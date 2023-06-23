@@ -114,7 +114,7 @@ func TestCreateRoom(t *testing.T) {
 				result, _ := responseBody["result"].(map[string]interface{})
 				t.Log(result)
 				assert.Equal(t, tc.reqBody["name"], result["name"])
-				assert.Equal(t, tc.reqBody["roomType"], result["room_type"])
+				assert.Equal(t, tc.reqBody["roomType"], result["roomType"])
 			}
 		})
 	}

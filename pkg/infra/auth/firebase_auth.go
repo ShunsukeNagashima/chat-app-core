@@ -8,7 +8,7 @@ import (
 
 //go:generate mockery --name=FirebaseAuthenticator --output=mocks
 type FirebaseAuthenticator interface {
-	GetFirebaseUser(ctx context.Context, uid string) (*auth.Token, error)
+	GetFirebaseUser(ctx context.Context, idToken string) (*auth.Token, error)
 }
 
 type FirebaseAuth struct {

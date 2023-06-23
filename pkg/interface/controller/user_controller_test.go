@@ -85,10 +85,7 @@ func TestGetUserByID(t *testing.T) {
 
 func TestCreateUser(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	mockUsecase := new(mocks.UserUsecase)
 	validator := validator.New()
-
-	uc := NewUserController(mockUsecase, validator)
 
 	testCases := []struct {
 		name         string
@@ -98,30 +95,38 @@ func TestCreateUser(t *testing.T) {
 		{
 			name: "Success",
 			reqBody: map[string]string{
-				"name":  "user-1",
-				"email": "user-1@example.com",
+				"userID":  "1",
+				"name":    "user-1",
+				"email":   "user-1@example.com",
+				"idToken": "test_id_token",
 			},
 			expectedCode: http.StatusOK,
 		},
 		{
 			name: "Missing name",
 			reqBody: map[string]string{
-				"email": "user-2@example.com",
+				"userID":  "2",
+				"email":   "user-2@example.com",
+				"idToken": "test_id_token",
 			},
 			expectedCode: http.StatusBadRequest,
 		},
 		{
 			name: "Missing email",
 			reqBody: map[string]string{
-				"name": "user-3",
+				"userID":  "3",
+				"name":    "user-3",
+				"idToken": "test_id_token",
 			},
 			expectedCode: http.StatusBadRequest,
 		},
 		{
 			name: "Invalid email",
 			reqBody: map[string]string{
-				"name":  "user-4",
-				"email": "invalid_email",
+				"userID":  "4",
+				"name":    "user-4",
+				"email":   "invalid_email",
+				"idToken": "test_id_token",
 			},
 			expectedCode: http.StatusBadRequest,
 		},
@@ -129,9 +134,13 @@ func TestCreateUser(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			mockUsecase := new(mocks.UserUsecase)
+
 			if tc.expectedCode == http.StatusOK {
-				mockUsecase.On("CreateUser", mock.Anything, mock.Anything).Return(nil)
+				mockUsecase.On("CreateUser", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			}
+
+			uc := NewUserController(mockUsecase, validator)
 
 			reqBody, _ := json.Marshal(tc.reqBody)
 			request, _ := http.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(reqBody))
@@ -149,8 +158,10 @@ func TestCreateUser(t *testing.T) {
 				json.Unmarshal(response.Body.Bytes(), &responseBody)
 
 				result, _ := responseBody["result"].(map[string]interface{})
-				assert.Equal(t, tc.reqBody["name"], result["Username"])
-				assert.Equal(t, tc.reqBody["email"], result["Email"])
+
+				t.Log(result)
+				assert.Equal(t, tc.reqBody["name"], result["userName"])
+				assert.Equal(t, tc.reqBody["email"], result["email"])
 			}
 		})
 	}

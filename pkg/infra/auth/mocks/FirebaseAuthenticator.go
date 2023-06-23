@@ -15,17 +15,17 @@ type FirebaseAuthenticator struct {
 	mock.Mock
 }
 
-// GetFirebaseUser provides a mock function with given fields: ctx, uid
-func (_m *FirebaseAuthenticator) GetFirebaseUser(ctx context.Context, uid string) (*auth.Token, error) {
-	ret := _m.Called(ctx, uid)
+// GetFirebaseUser provides a mock function with given fields: ctx, idToken
+func (_m *FirebaseAuthenticator) GetFirebaseUser(ctx context.Context, idToken string) (*auth.Token, error) {
+	ret := _m.Called(ctx, idToken)
 
 	var r0 *auth.Token
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) (*auth.Token, error)); ok {
-		return rf(ctx, uid)
+		return rf(ctx, idToken)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) *auth.Token); ok {
-		r0 = rf(ctx, uid)
+		r0 = rf(ctx, idToken)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*auth.Token)
@@ -33,7 +33,7 @@ func (_m *FirebaseAuthenticator) GetFirebaseUser(ctx context.Context, uid string
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, uid)
+		r1 = rf(ctx, idToken)
 	} else {
 		r1 = ret.Error(1)
 	}

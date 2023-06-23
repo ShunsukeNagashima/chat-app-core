@@ -46,7 +46,7 @@ func TestCreateUser(t *testing.T) {
 	idToken := "test_id_token"
 
 	mockRepo.On("Create", mock.Anything, mockUser).Return(nil)
-	mockAuth.On("GetFirebaseUser", mock.Anything, mockUser.UserID).Return(&auth.Token{UID: "1"}, nil)
+	mockAuth.On("GetFirebaseUser", mock.Anything, idToken).Return(&auth.Token{UID: "1"}, nil)
 
 	userUsecase := NewUserUsecase(mockRepo, mockAuth)
 	err := userUsecase.CreateUser(context.Background(), mockUser, idToken)
