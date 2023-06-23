@@ -8,6 +8,7 @@ services:
         - target=dev
     volumes:
       - .:/app
+      - ~/.aws/credentials:/root/.aws/credentials:ro
     ports:
       - 8080:8080
     secrets:
@@ -36,4 +37,4 @@ volumes:
 
 secrets:
   firebase-credentials:
-    file: .secrets/firebase-credentials.json
+    file: ./secrets/firebase-credentials.json
