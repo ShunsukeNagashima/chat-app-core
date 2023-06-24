@@ -2,11 +2,11 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/shunsukenagashima/chat-api/pkg/apperror"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/repository"
 )
@@ -42,7 +42,7 @@ func (r *RoomRepositoryImpl) GetById(ctx context.Context, roomID string) (*model
 	}
 
 	if len(result.Item) == 0 {
-		return nil, fmt.Errorf("room with ID %s not found", roomID)
+		return nil, apperror.NewNotFoundErr("Room", "RoomID: "+roomID)
 	}
 
 	var room model.Room

@@ -2,8 +2,10 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/shunsukenagashima/chat-api/pkg/apperror"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/repository"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/usecase"
@@ -29,6 +31,14 @@ func (uu *UserUsecaseImpl) CreateUser(ctx context.Context, user *model.User, idT
 	}
 	if token.UID != user.UserID {
 		return fmt.Errorf("provided user ID does not match the user ID in Firebase token")
+	}
+
+	_, err = uu.repo.GetByID(ctx, user.UserID)
+	if err != nil {
+		var notFoundErr *apperror.NotFoundErr
+		if !errors.As(err, &notFoundErr) {
+			return err
+		}
 	}
 
 	return uu.repo.Create(ctx, user)

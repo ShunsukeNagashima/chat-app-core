@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/shunsukenagashima/chat-api/pkg/apperror"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/repository"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/usecase"
@@ -35,7 +36,7 @@ func (ru *RoomUsecaseImpl) CreateRoom(ctx context.Context, room *model.Room, own
 		return err
 	}
 	if existingRoom != nil {
-		return fmt.Errorf("name of chat room '%s' is duplicated", room.Name)
+		return apperror.NewAlreadyExistsErr("Room", "RoomName: "+room.Name)
 	}
 
 	owner, err := ru.userRepo.GetByID(ctx, ownerID)
@@ -43,7 +44,7 @@ func (ru *RoomUsecaseImpl) CreateRoom(ctx context.Context, room *model.Room, own
 		return err
 	}
 	if owner == nil {
-		return fmt.Errorf("user with the ID '%s' couldn't be found", ownerID)
+		return apperror.NewNotFoundErr("User", "UserID: "+ownerID)
 	}
 
 	if err := ru.roomRepo.CreateAndAddUser(ctx, room, ownerID); err != nil {

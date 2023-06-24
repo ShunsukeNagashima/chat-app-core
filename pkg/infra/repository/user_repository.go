@@ -2,11 +2,11 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/shunsukenagashima/chat-api/pkg/apperror"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/repository"
 )
@@ -58,7 +58,7 @@ func (r *UserRepositoryImpl) GetByID(ctx context.Context, userID string) (*model
 	}
 
 	if len(result.Item) == 0 {
-		return nil, fmt.Errorf("user with ID %s not found", userID)
+		return nil, apperror.NewNotFoundErr("User", "UserID: "+userID)
 	}
 
 	var user model.User
