@@ -51,6 +51,9 @@ func SetupUsers() (string, error) {
 			"userName": {
 				S: aws.String("Sample User"),
 			},
+			"email": {
+				S: aws.String("sample-user@example.com"),
+			},
 		},
 		TableName: aws.String(tableName),
 	})
