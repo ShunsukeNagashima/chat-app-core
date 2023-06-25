@@ -1,12 +1,15 @@
 package scripts
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/google/uuid"
 )
 
-func SetUpRooms() error {
+func SetupRooms() ([]string, error) {
 	tableName := "Rooms"
 
 	sess, _ := session.NewSession(&aws.Config{
@@ -59,26 +62,42 @@ func SetUpRooms() error {
 		TableName: aws.String(tableName),
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	var roomIDs []string
 	// テストデータの投入
-	_, err = svc.PutItem(&dynamodb.PutItemInput{
-		Item: map[string]*dynamodb.AttributeValue{
-			"roomID": {
-				S: aws.String("sampleRoomID"),
+	for i := 0; i <= 3; i++ {
+		roomID := uuid.New().String()
+		roomIDs = append(roomIDs, roomID)
+		var roomName string
+		var roomType string
+		if i == 0 {
+			roomName = "sample-private-room"
+			roomType = "private"
+		} else {
+			roomName = fmt.Sprintf("sample-public-room-%d", i)
+			roomType = "public"
+		}
+
+		_, err = svc.PutItem(&dynamodb.PutItemInput{
+			Item: map[string]*dynamodb.AttributeValue{
+				"roomID": {
+					S: aws.String(roomID),
+				},
+				"name": {
+					S: aws.String(roomName),
+				},
+				"roomType": {
+					S: aws.String(roomType),
+				},
 			},
-			"name": {
-				S: aws.String("sample room"),
-			},
-			"roomType": {
-				S: aws.String("Public"),
-			},
-		},
-		TableName: aws.String(tableName),
-	})
-	if err != nil {
-		return err
+			TableName: aws.String(tableName),
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
-	return nil
+
+	return roomIDs, nil
 }

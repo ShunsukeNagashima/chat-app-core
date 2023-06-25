@@ -7,8 +7,18 @@ import (
 )
 
 func main() {
-	if err := scripts.SetupUsers(); err != nil {
+	userID, err := scripts.SetupUsers()
+	if err != nil {
 		log.Panicf("Failed to set up users: %v", err)
+	}
+
+	roomIDs, err := scripts.SetupRooms()
+	if err != nil {
+		log.Panicf("Failed to set up rooms: %v", err)
+	}
+
+	if err := scripts.SetupRoomUsers(roomIDs, userID); err != nil {
+		log.Panicf("Failed to set up room users: %v", err)
 	}
 
 	if err := scripts.SetupLikes(); err != nil {
@@ -19,15 +29,8 @@ func main() {
 		log.Panicf("Failed to set up readby: %v", err)
 	}
 
-	if err := scripts.SetUpRooms(); err != nil {
-		log.Panicf("Failed to set up rooms: %v", err)
-	}
-
 	if err := scripts.SetupMessages(); err != nil {
 		log.Panicf("Failed to set up messages: %v", err)
 	}
 
-	if err := scripts.SetupRoomUsers(); err != nil {
-		log.Panicf("Failed to set up room users: %v", err)
-	}
 }

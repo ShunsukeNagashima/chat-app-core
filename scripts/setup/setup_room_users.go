@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
-func SetupRoomUsers() error {
+func SetupRoomUsers(roomIDs []string, userID string) error {
 	tableName := "RoomUsers"
 
 	sess, _ := session.NewSession(&aws.Config{
@@ -71,19 +71,22 @@ func SetupRoomUsers() error {
 	}
 
 	// テストデータの投入
-	_, err = svc.PutItem(&dynamodb.PutItemInput{
-		Item: map[string]*dynamodb.AttributeValue{
-			"roomID": {
-				S: aws.String("sampleRoomID"),
+	for _, roomID := range roomIDs {
+		_, err = svc.PutItem(&dynamodb.PutItemInput{
+			Item: map[string]*dynamodb.AttributeValue{
+				"roomID": {
+					S: aws.String(roomID),
+				},
+				"userID": {
+					S: aws.String(userID),
+				},
 			},
-			"userID": {
-				S: aws.String("sampleUserID"),
-			},
-		},
-		TableName: aws.String(tableName),
-	})
-	if err != nil {
-		return err
+			TableName: aws.String(tableName),
+		})
+		if err != nil {
+			return err
+		}
 	}
+
 	return nil
 }

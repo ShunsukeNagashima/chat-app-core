@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
-func SetupUsers() error {
+func SetupUsers() (string, error) {
 	tableName := "Users"
 
 	sess, _ := session.NewSession(&aws.Config{
@@ -37,14 +37,16 @@ func SetupUsers() error {
 		TableName: aws.String(tableName),
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
 
+	// registered on firebase
+	userID := "Ko9BmAGyeBSP0w3WAnf83eg31rU2"
 	// テストデータの投入
 	_, err = svc.PutItem(&dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
 			"userID": {
-				S: aws.String("sampleUserID"),
+				S: aws.String(userID),
 			},
 			"userName": {
 				S: aws.String("Sample User"),
@@ -53,7 +55,7 @@ func SetupUsers() error {
 		TableName: aws.String(tableName),
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return userID, nil
 }
