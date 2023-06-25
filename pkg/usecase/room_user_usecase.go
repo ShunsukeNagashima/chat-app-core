@@ -29,7 +29,16 @@ func (ru *RoomUserUsecaseImpl) GetAllRoomsByUserID(ctx context.Context, userID s
 		return nil, fmt.Errorf("failed to get all rooms by user ID: %w", err)
 	}
 
-	return roomUsers, nil
+	var rooms []*model.Room
+	for _, roomUser := range roomUsers {
+		room, err := ru.roomRepo.GetById(ctx, roomUser.RoomID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get room by ID: %w", err)
+		}
+		rooms = append(rooms, room)
+	}
+
+	return rooms, nil
 }
 
 func (ru *RoomUserUsecaseImpl) RemoveUserFromRoom(ctx context.Context, roomID, userID string) error {

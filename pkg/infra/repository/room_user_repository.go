@@ -22,7 +22,7 @@ func NewRoomUserRepository(db *dynamodb.DynamoDB) repository.RoomUserRepository 
 	}
 }
 
-func (r *RoomUserRepositoryImpl) GetAllRoomsByUserID(ctx context.Context, userID string) ([]*model.Room, error) {
+func (r *RoomUserRepositoryImpl) GetAllRoomsByUserID(ctx context.Context, userID string) ([]*model.RoomUser, error) {
 	input := &dynamodb.QueryInput{
 		TableName: aws.String("RoomUsers"),
 		IndexName: aws.String("UserIDIndex"),
@@ -42,13 +42,12 @@ func (r *RoomUserRepositoryImpl) GetAllRoomsByUserID(ctx context.Context, userID
 	if err != nil {
 		return nil, err
 	}
-
-	var rooms []*model.Room
-	if err := dynamodbattribute.UnmarshalListOfMaps(result.Items, &rooms); err != nil {
+	var roomUsers []*model.RoomUser
+	if err := dynamodbattribute.UnmarshalListOfMaps(result.Items, &roomUsers); err != nil {
 		return nil, err
 	}
 
-	return rooms, nil
+	return roomUsers, nil
 }
 
 func (r *RoomUserRepositoryImpl) RemoveUserFromRoom(ctx context.Context, roomID, userID string) error {

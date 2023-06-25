@@ -8,7 +8,7 @@ import (
 
 //go:generate mockery --name=RoomUserRepository --output=mocks
 type RoomUserRepository interface {
-	GetAllRoomsByUserID(ctx context.Context, userID string) ([]*model.Room, error)
+	GetAllRoomsByUserID(ctx context.Context, userID string) ([]*model.RoomUser, error)
 	RemoveUserFromRoom(ctx context.Context, roomID, userID string) error
 	AddUsersToRoom(ctx context.Context, roomID string, userIDs []string) error
 }
