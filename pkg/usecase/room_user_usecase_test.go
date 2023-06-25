@@ -50,14 +50,14 @@ func TestRemoveUserFromRoom(t *testing.T) {
 	mockUserRepo := new(mocks.UserRepository)
 	mockRoomRepo := new(mocks.RoomRepository)
 
-	roomID := "1"
-	userID := "1"
+	roomId := "1"
+	userId := "1"
 
-	mockRoomUserRepo.On("RemoveUserFromRoom", mock.Anything, roomID, userID).Return(nil)
+	mockRoomUserRepo.On("RemoveUserFromRoom", mock.Anything, roomId, userId).Return(nil)
 
 	roomUserUsecase := NewRoomUserUsecase(mockRoomUserRepo, mockUserRepo, mockRoomRepo)
 
-	err := roomUserUsecase.RemoveUserFromRoom(context.Background(), roomID, userID)
+	err := roomUserUsecase.RemoveUserFromRoom(context.Background(), roomId, userId)
 
 	assert.NoError(t, err)
 	mockRoomUserRepo.AssertExpectations(t)
@@ -94,25 +94,25 @@ func TestAddUsersToRoom(t *testing.T) {
 	testCases := []struct {
 		name        string
 		userIDs     []string
-		roomID      string
+		roomId      string
 		expectedErr error
 	}{
 		{
 			name:        "Success",
 			userIDs:     []string{mockUsers[0].UserID, mockUsers[1].UserID, mockUsers[2].UserID},
-			roomID:      "1",
+			roomId:      "1",
 			expectedErr: nil,
 		},
 		{
 			name:        "OneofUsersNotFound",
 			userIDs:     []string{mockUsers[0].UserID, mockUsers[1].UserID, "invalid_user_id"},
-			roomID:      "1",
+			roomId:      "1",
 			expectedErr: errors.New("user not found"),
 		},
 		{
 			name:        "RoomNotFound",
 			userIDs:     []string{mockUsers[0].UserID, mockUsers[1].UserID, mockUsers[2].UserID},
-			roomID:      "invalid_room_id",
+			roomId:      "invalid_room_id",
 			expectedErr: errors.New("room not found"),
 		},
 	}
@@ -120,24 +120,24 @@ func TestAddUsersToRoom(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			for i, userID := range tc.userIDs {
-				if userID == "invalid_user_id" {
-					mockUserRepo.On("GetByID", mock.Anything, userID).Return(nil, errors.New("user not found"))
+			for i, userId := range tc.userIDs {
+				if userId == "invalid_user_id" {
+					mockUserRepo.On("GetByID", mock.Anything, userId).Return(nil, errors.New("user not found"))
 				} else {
-					mockUserRepo.On("GetByID", mock.Anything, userID).Return(mockUsers[i], nil)
+					mockUserRepo.On("GetByID", mock.Anything, userId).Return(mockUsers[i], nil)
 				}
 			}
-			mockRoomUserRepo.On("AddUsersToRoom", mock.Anything, tc.roomID, tc.userIDs).Return(nil)
+			mockRoomUserRepo.On("AddUsersToRoom", mock.Anything, tc.roomId, tc.userIDs).Return(nil)
 
-			if tc.roomID == "invalid_room_id" {
-				mockRoomRepo.On("GetById", mock.Anything, tc.roomID).Return(nil, errors.New("room not found"))
+			if tc.roomId == "invalid_room_id" {
+				mockRoomRepo.On("GetById", mock.Anything, tc.roomId).Return(nil, errors.New("room not found"))
 			} else {
-				mockRoomRepo.On("GetById", mock.Anything, tc.roomID).Return(mockRoom, nil)
+				mockRoomRepo.On("GetById", mock.Anything, tc.roomId).Return(mockRoom, nil)
 			}
 
 			roomUserUsecase := NewRoomUserUsecase(mockRoomUserRepo, mockUserRepo, mockRoomRepo)
 
-			err := roomUserUsecase.AddUsersToRoom(context.Background(), tc.roomID, tc.userIDs)
+			err := roomUserUsecase.AddUsersToRoom(context.Background(), tc.roomId, tc.userIDs)
 
 			if tc.expectedErr != nil {
 				assert.Error(t, err)

@@ -23,9 +23,9 @@ func NewRoomController(roomUsecase usecase.RoomUsecase, validator *validator.Val
 }
 
 func (rc *RoomController) GetRoomByID(ctx *gin.Context) {
-	roomID := ctx.Param("roomID")
+	roomId := ctx.Param("roomId")
 
-	result, err := rc.roomUsecase.GetRoomByID(ctx.Request.Context(), roomID)
+	result, err := rc.roomUsecase.GetRoomByID(ctx.Request.Context(), roomId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
@@ -81,9 +81,9 @@ func (rc *RoomController) CreateRoom(ctx *gin.Context) {
 }
 
 func (rc *RoomController) DeleteRoom(ctx *gin.Context) {
-	roomID := ctx.Param("roomID")
+	roomId := ctx.Param("roomId")
 
-	if err := rc.roomUsecase.DeleteRoom(ctx.Request.Context(), roomID); err != nil {
+	if err := rc.roomUsecase.DeleteRoom(ctx.Request.Context(), roomId); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -92,7 +92,7 @@ func (rc *RoomController) DeleteRoom(ctx *gin.Context) {
 }
 
 func (rc *RoomController) UpdateRoom(ctx *gin.Context) {
-	roomID := ctx.Param("roomID")
+	roomId := ctx.Param("roomId")
 
 	var req struct {
 		Name     string `json:"name" validate:"required,min=1,max=30,alnumdash"`
@@ -117,7 +117,7 @@ func (rc *RoomController) UpdateRoom(ctx *gin.Context) {
 	}
 
 	room := &model.Room{
-		RoomID:   roomID,
+		RoomID:   roomId,
 		Name:     req.Name,
 		RoomType: roomType,
 	}

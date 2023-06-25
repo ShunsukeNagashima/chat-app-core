@@ -31,21 +31,21 @@ func TestGetUserByID(t *testing.T) {
 
 	testCases := []struct {
 		name        string
-		userID      string
+		userId      string
 		mockReturn  *model.User
 		mockError   error
 		isErrorCase bool
 	}{
 		{
 			name:        "Success",
-			userID:      "1",
+			userId:      "1",
 			mockReturn:  mockUser,
 			mockError:   nil,
 			isErrorCase: false,
 		},
 		{
 			name:        "Invalid UserID",
-			userID:      "invalid_userID",
+			userId:      "invalid_userID",
 			mockReturn:  nil,
 			mockError:   errors.New("some error"),
 			isErrorCase: true,
@@ -54,12 +54,12 @@ func TestGetUserByID(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			mockUsecase.On("GetUserByID", mock.Anything, tc.userID).Return(tc.mockReturn, tc.mockError)
+			mockUsecase.On("GetUserByID", mock.Anything, tc.userId).Return(tc.mockReturn, tc.mockError)
 
 			request, _ := http.NewRequest(http.MethodGet, "/users/"+mockUser.UserID, nil)
 			response := httptest.NewRecorder()
 			ctx, _ := gin.CreateTestContext(response)
-			ctx.Params = gin.Params{{Key: "userID", Value: tc.userID}}
+			ctx.Params = gin.Params{{Key: "userId", Value: tc.userId}}
 			ctx.Request = request
 
 			uc.GetUserByID(ctx)
@@ -95,7 +95,7 @@ func TestCreateUser(t *testing.T) {
 		{
 			name: "Success",
 			reqBody: map[string]string{
-				"userID":  "1",
+				"userId":  "1",
 				"name":    "user-1",
 				"email":   "user-1@example.com",
 				"idToken": "test_id_token",
@@ -105,7 +105,7 @@ func TestCreateUser(t *testing.T) {
 		{
 			name: "Missing name",
 			reqBody: map[string]string{
-				"userID":  "2",
+				"userId":  "2",
 				"email":   "user-2@example.com",
 				"idToken": "test_id_token",
 			},
@@ -114,7 +114,7 @@ func TestCreateUser(t *testing.T) {
 		{
 			name: "Missing email",
 			reqBody: map[string]string{
-				"userID":  "3",
+				"userId":  "3",
 				"name":    "user-3",
 				"idToken": "test_id_token",
 			},
@@ -123,7 +123,7 @@ func TestCreateUser(t *testing.T) {
 		{
 			name: "Invalid email",
 			reqBody: map[string]string{
-				"userID":  "4",
+				"userId":  "4",
 				"name":    "user-4",
 				"email":   "invalid_email",
 				"idToken": "test_id_token",

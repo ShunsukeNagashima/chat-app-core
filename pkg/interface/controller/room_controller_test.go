@@ -135,21 +135,21 @@ func TestGetRoomByID(t *testing.T) {
 
 	testCases := []struct {
 		name         string
-		roomID       string
+		roomId       string
 		mockReturn   *model.Room
 		expectedErr  error
 		expectedCode int
 	}{
 		{
 			name:         "Success",
-			roomID:       "1",
+			roomId:       "1",
 			mockReturn:   &mockRoom,
 			expectedErr:  nil,
 			expectedCode: http.StatusOK,
 		},
 		{
-			name:         "Invalid roomID",
-			roomID:       "invalid",
+			name:         "Invalid roomId",
+			roomId:       "invalid",
 			mockReturn:   nil,
 			expectedErr:  errors.New("some error"),
 			expectedCode: http.StatusInternalServerError,
@@ -158,14 +158,14 @@ func TestGetRoomByID(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			request, _ := http.NewRequest(http.MethodGet, "/rooms/"+tc.roomID, nil)
+			request, _ := http.NewRequest(http.MethodGet, "/rooms/"+tc.roomId, nil)
 			response := httptest.NewRecorder()
 
 			ctx, _ := gin.CreateTestContext(response)
-			ctx.Params = gin.Params{{Key: "roomID", Value: tc.roomID}}
+			ctx.Params = gin.Params{{Key: "roomId", Value: tc.roomId}}
 			ctx.Request = request
 
-			mockUsecase.On("GetRoomByID", mock.Anything, tc.roomID).Return(tc.mockReturn, tc.expectedErr)
+			mockUsecase.On("GetRoomByID", mock.Anything, tc.roomId).Return(tc.mockReturn, tc.expectedErr)
 
 			uc.GetRoomByID(ctx)
 
@@ -266,19 +266,19 @@ func TestDeleteRoom(t *testing.T) {
 
 	testCases := []struct {
 		name         string
-		roomID       string
+		roomId       string
 		expectedErr  error
 		expectedCode int
 	}{
 		{
 			name:         "Success",
-			roomID:       "1",
+			roomId:       "1",
 			expectedErr:  nil,
 			expectedCode: http.StatusOK,
 		},
 		{
-			name:         "Invalid roomID",
-			roomID:       "invalid",
+			name:         "Invalid roomId",
+			roomId:       "invalid",
 			expectedErr:  errors.New("some error"),
 			expectedCode: http.StatusInternalServerError,
 		},
@@ -286,14 +286,14 @@ func TestDeleteRoom(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			request, _ := http.NewRequest(http.MethodDelete, "/rooms/"+tc.roomID, nil)
+			request, _ := http.NewRequest(http.MethodDelete, "/rooms/"+tc.roomId, nil)
 			response := httptest.NewRecorder()
 
 			ctx, _ := gin.CreateTestContext(response)
-			ctx.Params = gin.Params{{Key: "roomID", Value: tc.roomID}}
+			ctx.Params = gin.Params{{Key: "roomId", Value: tc.roomId}}
 			ctx.Request = request
 
-			mockUsecase.On("DeleteRoom", mock.Anything, tc.roomID).Return(tc.expectedErr)
+			mockUsecase.On("DeleteRoom", mock.Anything, tc.roomId).Return(tc.expectedErr)
 
 			uc.DeleteRoom(ctx)
 
@@ -320,14 +320,14 @@ func TestUpdateRoom(t *testing.T) {
 
 	testCases := []struct {
 		name         string
-		roomID       string
+		roomId       string
 		reqBody      map[string]string
 		expectedErr  error
 		expectedCode int
 	}{
 		{
 			name:   "Success",
-			roomID: "1",
+			roomId: "1",
 			reqBody: map[string]string{
 				"name":     "chat_room_update",
 				"roomType": "public",
@@ -337,7 +337,7 @@ func TestUpdateRoom(t *testing.T) {
 		},
 		{
 			name:   "Invalid roomType",
-			roomID: "1",
+			roomId: "1",
 			reqBody: map[string]string{
 				"name":     "chat_room_update",
 				"roomType": "invalid",
@@ -347,7 +347,7 @@ func TestUpdateRoom(t *testing.T) {
 		},
 		{
 			name:   "Invalid name",
-			roomID: "1",
+			roomId: "1",
 			reqBody: map[string]string{
 				"name":     "invalid%room",
 				"roomType": "public",
@@ -361,11 +361,11 @@ func TestUpdateRoom(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			reqBody, _ := json.Marshal(tc.reqBody)
 
-			request, _ := http.NewRequest(http.MethodPut, "/rooms/"+tc.roomID, bytes.NewBuffer(reqBody))
+			request, _ := http.NewRequest(http.MethodPut, "/rooms/"+tc.roomId, bytes.NewBuffer(reqBody))
 			response := httptest.NewRecorder()
 
 			ctx, _ := gin.CreateTestContext(response)
-			ctx.Params = gin.Params{{Key: "roomID", Value: tc.roomID}}
+			ctx.Params = gin.Params{{Key: "roomId", Value: tc.roomId}}
 			ctx.Request = request
 
 			mockUsecase.On("UpdateRoom", mock.Anything, mock.Anything).Return(tc.expectedErr)

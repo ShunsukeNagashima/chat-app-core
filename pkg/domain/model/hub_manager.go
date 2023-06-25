@@ -10,11 +10,11 @@ func NewHubManager() *HubManager {
 	}
 }
 
-func (hm *HubManager) GetHub(roomID string) *Hub {
-	hub, exists := hm.Hubs[roomID]
+func (hm *HubManager) GetHub(roomId string) *Hub {
+	hub, exists := hm.Hubs[roomId]
 	if !exists {
 		hub = NewHub()
-		hm.Hubs[roomID] = hub
+		hm.Hubs[roomId] = hub
 		go hub.Run()
 	}
 	return hub

@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
-func SetupRoomUsers(roomIDs []string, userID string) error {
+func SetupRoomUsers(roomIDs []string, userId string) error {
 	tableName := "RoomUsers"
 
 	sess, _ := session.NewSession(&aws.Config{
@@ -20,21 +20,21 @@ func SetupRoomUsers(roomIDs []string, userID string) error {
 	_, err := svc.CreateTable(&dynamodb.CreateTableInput{
 		AttributeDefinitions: []*dynamodb.AttributeDefinition{
 			{
-				AttributeName: aws.String("roomID"),
+				AttributeName: aws.String("roomId"),
 				AttributeType: aws.String("S"),
 			},
 			{
-				AttributeName: aws.String("userID"),
+				AttributeName: aws.String("userId"),
 				AttributeType: aws.String("S"),
 			},
 		},
 		KeySchema: []*dynamodb.KeySchemaElement{
 			{
-				AttributeName: aws.String("roomID"),
+				AttributeName: aws.String("roomId"),
 				KeyType:       aws.String("HASH"),
 			},
 			{
-				AttributeName: aws.String("userID"),
+				AttributeName: aws.String("userId"),
 				KeyType:       aws.String("RANGE"),
 			},
 		},
@@ -43,11 +43,11 @@ func SetupRoomUsers(roomIDs []string, userID string) error {
 				IndexName: aws.String("UserIDIndex"),
 				KeySchema: []*dynamodb.KeySchemaElement{
 					{
-						AttributeName: aws.String("userID"),
+						AttributeName: aws.String("userId"),
 						KeyType:       aws.String("HASH"),
 					},
 					{
-						AttributeName: aws.String("roomID"),
+						AttributeName: aws.String("roomId"),
 						KeyType:       aws.String("RANGE"),
 					},
 				},
@@ -71,14 +71,14 @@ func SetupRoomUsers(roomIDs []string, userID string) error {
 	}
 
 	// テストデータの投入
-	for _, roomID := range roomIDs {
+	for _, roomId := range roomIDs {
 		_, err = svc.PutItem(&dynamodb.PutItemInput{
 			Item: map[string]*dynamodb.AttributeValue{
-				"roomID": {
-					S: aws.String(roomID),
+				"roomId": {
+					S: aws.String(roomId),
 				},
-				"userID": {
-					S: aws.String(userID),
+				"userId": {
+					S: aws.String(userId),
 				},
 			},
 			TableName: aws.String(tableName),

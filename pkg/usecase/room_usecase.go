@@ -22,8 +22,8 @@ func NewRoomUsecase(roomRepo repository.RoomRepository, userRepo repository.User
 	}
 }
 
-func (ru *RoomUsecaseImpl) GetRoomByID(ctx context.Context, roomID string) (*model.Room, error) {
-	return ru.roomRepo.GetById(ctx, roomID)
+func (ru *RoomUsecaseImpl) GetRoomByID(ctx context.Context, roomId string) (*model.Room, error) {
+	return ru.roomRepo.GetById(ctx, roomId)
 }
 
 func (ru *RoomUsecaseImpl) GetAllPublicRoom(ctx context.Context) ([]*model.Room, error) {
@@ -54,16 +54,16 @@ func (ru *RoomUsecaseImpl) CreateRoom(ctx context.Context, room *model.Room, own
 	return nil
 }
 
-func (ru *RoomUsecaseImpl) DeleteRoom(ctx context.Context, roomID string) error {
-	room, err := ru.roomRepo.GetById(ctx, roomID)
+func (ru *RoomUsecaseImpl) DeleteRoom(ctx context.Context, roomId string) error {
+	room, err := ru.roomRepo.GetById(ctx, roomId)
 	if err != nil {
 		return err
 	}
 	if room == nil {
-		return fmt.Errorf("room with the ID '%s' couldn't be found", roomID)
+		return fmt.Errorf("room with the ID '%s' couldn't be found", roomId)
 	}
 
-	if err := ru.roomRepo.Delete(ctx, roomID); err != nil {
+	if err := ru.roomRepo.Delete(ctx, roomId); err != nil {
 		return err
 	}
 

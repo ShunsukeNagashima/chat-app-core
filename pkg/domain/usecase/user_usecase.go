@@ -9,5 +9,5 @@ import (
 //go:generate mockery --name=UserUsecase --output=mocks
 type UserUsecase interface {
 	CreateUser(ctx context.Context, user *model.User, idToken string) error
-	GetUserByID(ctx context.Context, userID string) (*model.User, error)
+	GetUserByID(ctx context.Context, userId string) (*model.User, error)
 }

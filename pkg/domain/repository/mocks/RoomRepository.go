@@ -28,13 +28,13 @@ func (_m *RoomRepository) CreateAndAddUser(ctx context.Context, room *model.Room
 	return r0
 }
 
-// Delete provides a mock function with given fields: ctx, roomID
-func (_m *RoomRepository) Delete(ctx context.Context, roomID string) error {
-	ret := _m.Called(ctx, roomID)
+// Delete provides a mock function with given fields: ctx, roomId
+func (_m *RoomRepository) Delete(ctx context.Context, roomId string) error {
+	ret := _m.Called(ctx, roomId)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, roomID)
+		r0 = rf(ctx, roomId)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -68,17 +68,17 @@ func (_m *RoomRepository) GetAllPublic(ctx context.Context) ([]*model.Room, erro
 	return r0, r1
 }
 
-// GetById provides a mock function with given fields: ctx, roomID
-func (_m *RoomRepository) GetById(ctx context.Context, roomID string) (*model.Room, error) {
-	ret := _m.Called(ctx, roomID)
+// GetById provides a mock function with given fields: ctx, roomId
+func (_m *RoomRepository) GetById(ctx context.Context, roomId string) (*model.Room, error) {
+	ret := _m.Called(ctx, roomId)
 
 	var r0 *model.Room
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.Room, error)); ok {
-		return rf(ctx, roomID)
+		return rf(ctx, roomId)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) *model.Room); ok {
-		r0 = rf(ctx, roomID)
+		r0 = rf(ctx, roomId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Room)
@@ -86,7 +86,7 @@ func (_m *RoomRepository) GetById(ctx context.Context, roomID string) (*model.Ro
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, roomID)
+		r1 = rf(ctx, roomId)
 	} else {
 		r1 = ret.Error(1)
 	}

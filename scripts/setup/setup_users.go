@@ -20,13 +20,13 @@ func SetupUsers() (string, error) {
 	_, err := svc.CreateTable(&dynamodb.CreateTableInput{
 		AttributeDefinitions: []*dynamodb.AttributeDefinition{
 			{
-				AttributeName: aws.String("userID"),
+				AttributeName: aws.String("userId"),
 				AttributeType: aws.String("S"),
 			},
 		},
 		KeySchema: []*dynamodb.KeySchemaElement{
 			{
-				AttributeName: aws.String("userID"),
+				AttributeName: aws.String("userId"),
 				KeyType:       aws.String("HASH"),
 			},
 		},
@@ -41,12 +41,12 @@ func SetupUsers() (string, error) {
 	}
 
 	// registered on firebase
-	userID := "Ko9BmAGyeBSP0w3WAnf83eg31rU2"
+	userId := "Ko9BmAGyeBSP0w3WAnf83eg31rU2"
 	// テストデータの投入
 	_, err = svc.PutItem(&dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
-			"userID": {
-				S: aws.String(userID),
+			"userId": {
+				S: aws.String(userId),
 			},
 			"userName": {
 				S: aws.String("Sample User"),
@@ -57,5 +57,5 @@ func SetupUsers() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return userID, nil
+	return userId, nil
 }

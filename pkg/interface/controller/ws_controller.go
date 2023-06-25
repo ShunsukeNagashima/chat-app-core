@@ -25,16 +25,20 @@ func NewWSController(hubManager *model.HubManager) *WSController {
 	}
 }
 
-func (wc *WSController) HandleConnection(c *gin.Context) {
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+func (wc *WSController) HandleConnection(ctx *gin.Context) {
+	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		log.Printf("Failed to set webscoket upgrade: %+v", err)
 		return
 	}
 
-	roomID := c.Param("roomID")
+	roomId := ctx.Param("roomId")
+	if roomId == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "roomId is required"})
+		return
+	}
 
-	hub := wc.HubManager.GetHub(roomID)
+	hub := wc.HubManager.GetHub(roomId)
 	client := model.NewClient(conn, hub)
 
 	hub.Register <- client

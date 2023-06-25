@@ -9,5 +9,5 @@ import (
 //go:generate mockery --name=UserRepository --output=mocks
 type UserRepository interface {
 	Create(ctx context.Context, user *model.User) error
-	GetByID(ctx context.Context, userID string) (*model.User, error)
+	GetByID(ctx context.Context, userId string) (*model.User, error)
 }

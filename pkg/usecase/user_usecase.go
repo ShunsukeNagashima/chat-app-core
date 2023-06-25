@@ -44,6 +44,6 @@ func (uu *UserUsecaseImpl) CreateUser(ctx context.Context, user *model.User, idT
 	return uu.repo.Create(ctx, user)
 }
 
-func (uu *UserUsecaseImpl) GetUserByID(ctx context.Context, userID string) (*model.User, error) {
-	return uu.repo.GetByID(ctx, userID)
+func (uu *UserUsecaseImpl) GetUserByID(ctx context.Context, userId string) (*model.User, error) {
+	return uu.repo.GetByID(ctx, userId)
 }

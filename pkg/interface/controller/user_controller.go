@@ -23,7 +23,7 @@ func NewUserController(userUsecase usecase.UserUsecase, validator *validator.Val
 
 func (uc *UserController) CreateUser(ctx *gin.Context) {
 	var req struct {
-		UserID  string `json:"userID" validate:"required"`
+		UserID  string `json:"userId" validate:"required"`
 		Name    string `json:"name" validate:"required,min=1,max=30"`
 		Email   string `json:"email" validate:"required,email"`
 		IDToken string `json:"idToken" validate:"required"`
@@ -54,9 +54,9 @@ func (uc *UserController) CreateUser(ctx *gin.Context) {
 }
 
 func (uc *UserController) GetUserByID(ctx *gin.Context) {
-	userID := ctx.Param("userID")
+	userId := ctx.Param("userId")
 
-	result, err := uc.userUsecase.GetUserByID(ctx.Request.Context(), userID)
+	result, err := uc.userUsecase.GetUserByID(ctx.Request.Context(), userId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

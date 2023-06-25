@@ -22,16 +22,16 @@ func NewRoomUserRepository(db *dynamodb.DynamoDB) repository.RoomUserRepository 
 	}
 }
 
-func (r *RoomUserRepositoryImpl) GetAllRoomsByUserID(ctx context.Context, userID string) ([]*model.RoomUser, error) {
+func (r *RoomUserRepositoryImpl) GetAllRoomsByUserID(ctx context.Context, userId string) ([]*model.RoomUser, error) {
 	input := &dynamodb.QueryInput{
 		TableName: aws.String("RoomUsers"),
 		IndexName: aws.String("UserIDIndex"),
 		KeyConditions: map[string]*dynamodb.Condition{
-			"userID": {
+			"userId": {
 				ComparisonOperator: aws.String("EQ"),
 				AttributeValueList: []*dynamodb.AttributeValue{
 					{
-						S: aws.String(userID),
+						S: aws.String(userId),
 					},
 				},
 			},
@@ -50,15 +50,15 @@ func (r *RoomUserRepositoryImpl) GetAllRoomsByUserID(ctx context.Context, userID
 	return roomUsers, nil
 }
 
-func (r *RoomUserRepositoryImpl) RemoveUserFromRoom(ctx context.Context, roomID, userID string) error {
+func (r *RoomUserRepositoryImpl) RemoveUserFromRoom(ctx context.Context, roomId, userId string) error {
 	input := &dynamodb.DeleteItemInput{
 		TableName: aws.String(r.dbName),
 		Key: map[string]*dynamodb.AttributeValue{
-			"roomID": {
-				S: aws.String(roomID),
+			"roomId": {
+				S: aws.String(roomId),
 			},
-			"userID": {
-				S: aws.String(userID),
+			"userId": {
+				S: aws.String(userId),
 			},
 		},
 	}
@@ -67,18 +67,18 @@ func (r *RoomUserRepositoryImpl) RemoveUserFromRoom(ctx context.Context, roomID,
 	return err
 }
 
-func (r *RoomUserRepositoryImpl) AddUsersToRoom(ctx context.Context, roomID string, userIDs []string) error {
+func (r *RoomUserRepositoryImpl) AddUsersToRoom(ctx context.Context, roomId string, userIDs []string) error {
 	writeRequests := make([]*dynamodb.TransactWriteItem, len(userIDs))
-	for i, userID := range userIDs {
+	for i, userId := range userIDs {
 		writeRequests[i] = &dynamodb.TransactWriteItem{
 			Put: &dynamodb.Put{
 				TableName: aws.String(r.dbName),
 				Item: map[string]*dynamodb.AttributeValue{
-					"roomID": {
-						S: aws.String(roomID),
+					"roomId": {
+						S: aws.String(roomId),
 					},
-					"userID": {
-						S: aws.String(userID),
+					"userId": {
+						S: aws.String(userId),
 					},
 				},
 			},

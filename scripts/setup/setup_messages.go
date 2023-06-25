@@ -20,7 +20,7 @@ func SetupMessages() error {
 	_, err := svc.CreateTable(&dynamodb.CreateTableInput{
 		AttributeDefinitions: []*dynamodb.AttributeDefinition{
 			{
-				AttributeName: aws.String("roomID"),
+				AttributeName: aws.String("roomId"),
 				AttributeType: aws.String("S"),
 			},
 			{
@@ -30,7 +30,7 @@ func SetupMessages() error {
 		},
 		KeySchema: []*dynamodb.KeySchemaElement{
 			{
-				AttributeName: aws.String("roomID"),
+				AttributeName: aws.String("roomId"),
 				KeyType:       aws.String("HASH"),
 			},
 			{
@@ -51,7 +51,7 @@ func SetupMessages() error {
 	// テストデータの投入
 	_, err = svc.PutItem(&dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
-			"messageID": {
+			"messageId": {
 				S: aws.String("sampleMessageID"),
 			},
 			"content": {
@@ -60,7 +60,7 @@ func SetupMessages() error {
 			"createdAt": {
 				S: aws.String("2023-06-01T12:00:00Z"),
 			},
-			"roomID": {
+			"roomId": {
 				S: aws.String("sampleRoomID"),
 			},
 			"senderID": {

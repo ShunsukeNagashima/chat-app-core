@@ -28,17 +28,17 @@ func (_m *UserUsecase) CreateUser(ctx context.Context, user *model.User, idToken
 	return r0
 }
 
-// GetUserByID provides a mock function with given fields: ctx, userID
-func (_m *UserUsecase) GetUserByID(ctx context.Context, userID string) (*model.User, error) {
-	ret := _m.Called(ctx, userID)
+// GetUserByID provides a mock function with given fields: ctx, userId
+func (_m *UserUsecase) GetUserByID(ctx context.Context, userId string) (*model.User, error) {
+	ret := _m.Called(ctx, userId)
 
 	var r0 *model.User
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.User, error)); ok {
-		return rf(ctx, userID)
+		return rf(ctx, userId)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) *model.User); ok {
-		r0 = rf(ctx, userID)
+		r0 = rf(ctx, userId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.User)
@@ -46,7 +46,7 @@ func (_m *UserUsecase) GetUserByID(ctx context.Context, userID string) (*model.U
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, userID)
+		r1 = rf(ctx, userId)
 	} else {
 		r1 = ret.Error(1)
 	}

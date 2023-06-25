@@ -21,9 +21,9 @@ func NewRoomUserController(roomUserUsecase usecase.RoomUserUsecase, validator *v
 }
 
 func (rc *RoomUserController) GetAllRoomsByUserID(ctx *gin.Context) {
-	userID := ctx.Param("userID")
+	userId := ctx.Param("userId")
 
-	rooms, err := rc.roomUserUsecase.GetAllRoomsByUserID(ctx, userID)
+	rooms, err := rc.roomUserUsecase.GetAllRoomsByUserID(ctx, userId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
@@ -33,10 +33,10 @@ func (rc *RoomUserController) GetAllRoomsByUserID(ctx *gin.Context) {
 }
 
 func (rc *RoomUserController) RemoveUserFromRoom(ctx *gin.Context) {
-	roomID := ctx.Param("roomID")
-	userID := ctx.Param("userID")
+	roomId := ctx.Param("roomId")
+	userId := ctx.Param("userId")
 
-	if err := rc.roomUserUsecase.RemoveUserFromRoom(ctx, roomID, userID); err != nil {
+	if err := rc.roomUserUsecase.RemoveUserFromRoom(ctx, roomId, userId); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
@@ -46,7 +46,7 @@ func (rc *RoomUserController) RemoveUserFromRoom(ctx *gin.Context) {
 
 func (rc *RoomUserController) AddUsersToRoom(ctx *gin.Context) {
 	var req struct {
-		RoomID  string   `json:"roomID" validate:"required"`
+		RoomID  string   `json:"roomId" validate:"required"`
 		UserIDs []string `json:"userIDs" validate:"required"`
 	}
 

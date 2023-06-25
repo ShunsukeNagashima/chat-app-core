@@ -142,29 +142,29 @@ func TestCreateRoom(t *testing.T) {
 }
 
 func TestDeleteRoom(t *testing.T) {
-	roomID := "1"
+	roomId := "1"
 
 	mockRoom := &model.Room{
-		RoomID:   roomID,
+		RoomID:   roomId,
 		Name:     "Room1",
 		RoomType: model.Public,
 	}
 
 	testCases := []struct {
 		name               string
-		roomID             string
+		roomId             string
 		mockRoomRepoReturn *model.Room
 		expectedErr        error
 	}{
 		{
 			name:               "Success",
-			roomID:             roomID,
+			roomId:             roomId,
 			mockRoomRepoReturn: mockRoom,
 			expectedErr:        nil,
 		},
 		{
 			name:               "Invalid RoomID",
-			roomID:             "invalid_roomID",
+			roomId:             "invalid_roomID",
 			mockRoomRepoReturn: nil,
 			expectedErr:        errors.New("room with the ID 'invalid_roomID' couldn't be found"),
 		},
@@ -175,12 +175,12 @@ func TestDeleteRoom(t *testing.T) {
 			mockRoomRepo := new(mocks.RoomRepository)
 			mockUserRepo := new(mocks.UserRepository)
 
-			mockRoomRepo.On("GetById", mock.Anything, tc.roomID).Return(tc.mockRoomRepoReturn, nil)
-			mockRoomRepo.On("Delete", mock.Anything, tc.roomID).Return(nil)
+			mockRoomRepo.On("GetById", mock.Anything, tc.roomId).Return(tc.mockRoomRepoReturn, nil)
+			mockRoomRepo.On("Delete", mock.Anything, tc.roomId).Return(nil)
 
 			roomUsecase := NewRoomUsecase(mockRoomRepo, mockUserRepo)
 
-			err := roomUsecase.DeleteRoom(context.Background(), tc.roomID)
+			err := roomUsecase.DeleteRoom(context.Background(), tc.roomId)
 
 			if tc.expectedErr != nil {
 				assert.Error(t, err)

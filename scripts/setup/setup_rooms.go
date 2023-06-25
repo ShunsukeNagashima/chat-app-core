@@ -23,7 +23,7 @@ func SetupRooms() ([]string, error) {
 	_, err := svc.CreateTable(&dynamodb.CreateTableInput{
 		AttributeDefinitions: []*dynamodb.AttributeDefinition{
 			{
-				AttributeName: aws.String("roomID"),
+				AttributeName: aws.String("roomId"),
 				AttributeType: aws.String("S"),
 			},
 			{
@@ -33,7 +33,7 @@ func SetupRooms() ([]string, error) {
 		},
 		KeySchema: []*dynamodb.KeySchemaElement{
 			{
-				AttributeName: aws.String("roomID"),
+				AttributeName: aws.String("roomId"),
 				KeyType:       aws.String("HASH"),
 			},
 		},
@@ -68,8 +68,8 @@ func SetupRooms() ([]string, error) {
 	var roomIDs []string
 	// テストデータの投入
 	for i := 0; i <= 3; i++ {
-		roomID := uuid.New().String()
-		roomIDs = append(roomIDs, roomID)
+		roomId := uuid.New().String()
+		roomIDs = append(roomIDs, roomId)
 		var roomName string
 		var roomType string
 		if i == 0 {
@@ -82,8 +82,8 @@ func SetupRooms() ([]string, error) {
 
 		_, err = svc.PutItem(&dynamodb.PutItemInput{
 			Item: map[string]*dynamodb.AttributeValue{
-				"roomID": {
-					S: aws.String(roomID),
+				"roomId": {
+					S: aws.String(roomId),
 				},
 				"name": {
 					S: aws.String(roomName),

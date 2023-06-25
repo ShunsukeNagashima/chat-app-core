@@ -41,12 +41,12 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, user *model.User) error
 	return nil
 }
 
-func (r *UserRepositoryImpl) GetByID(ctx context.Context, userID string) (*model.User, error) {
+func (r *UserRepositoryImpl) GetByID(ctx context.Context, userId string) (*model.User, error) {
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(r.dbName),
 		Key: map[string]*dynamodb.AttributeValue{
-			"userID": {
-				S: aws.String(userID),
+			"userId": {
+				S: aws.String(userId),
 			},
 		},
 	}
@@ -58,7 +58,7 @@ func (r *UserRepositoryImpl) GetByID(ctx context.Context, userID string) (*model
 	}
 
 	if len(result.Item) == 0 {
-		return nil, apperror.NewNotFoundErr("User", "UserID: "+userID)
+		return nil, apperror.NewNotFoundErr("User", "UserID: "+userId)
 	}
 
 	var user model.User

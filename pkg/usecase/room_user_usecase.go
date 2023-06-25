@@ -23,8 +23,8 @@ func NewRoomUserUsecase(roomUserRepo repository.RoomUserRepository, userRepo rep
 	}
 }
 
-func (ru *RoomUserUsecaseImpl) GetAllRoomsByUserID(ctx context.Context, userID string) ([]*model.Room, error) {
-	roomUsers, err := ru.roomUserRepo.GetAllRoomsByUserID(ctx, userID)
+func (ru *RoomUserUsecaseImpl) GetAllRoomsByUserID(ctx context.Context, userId string) ([]*model.Room, error) {
+	roomUsers, err := ru.roomUserRepo.GetAllRoomsByUserID(ctx, userId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all rooms by user ID: %w", err)
 	}
@@ -41,30 +41,30 @@ func (ru *RoomUserUsecaseImpl) GetAllRoomsByUserID(ctx context.Context, userID s
 	return rooms, nil
 }
 
-func (ru *RoomUserUsecaseImpl) RemoveUserFromRoom(ctx context.Context, roomID, userID string) error {
-	if err := ru.roomUserRepo.RemoveUserFromRoom(ctx, roomID, userID); err != nil {
+func (ru *RoomUserUsecaseImpl) RemoveUserFromRoom(ctx context.Context, roomId, userId string) error {
+	if err := ru.roomUserRepo.RemoveUserFromRoom(ctx, roomId, userId); err != nil {
 		return fmt.Errorf("failed to remove the user from the room: %w", err)
 	}
 	return nil
 }
 
-func (ru *RoomUserUsecaseImpl) AddUsersToRoom(ctx context.Context, roomID string, userIDs []string) error {
-	for _, userID := range userIDs {
-		_, err := ru.userRepo.GetByID(ctx, userID)
+func (ru *RoomUserUsecaseImpl) AddUsersToRoom(ctx context.Context, roomId string, userIDs []string) error {
+	for _, userId := range userIDs {
+		_, err := ru.userRepo.GetByID(ctx, userId)
 		if err != nil {
-			return fmt.Errorf("failed to fetch the user with ID %s: %w", userID, err)
+			return fmt.Errorf("failed to fetch the user with ID %s: %w", userId, err)
 		}
 	}
 
-	room, err := ru.roomRepo.GetById(ctx, roomID)
+	room, err := ru.roomRepo.GetById(ctx, roomId)
 	if err != nil {
-		return fmt.Errorf("failed to fetch the room with ID %s: %w", roomID, err)
+		return fmt.Errorf("failed to fetch the room with ID %s: %w", roomId, err)
 	}
 	if room == nil {
-		return fmt.Errorf("room with the ID %s couldn't be found", roomID)
+		return fmt.Errorf("room with the ID %s couldn't be found", roomId)
 	}
 
-	if err := ru.roomUserRepo.AddUsersToRoom(ctx, roomID, userIDs); err != nil {
+	if err := ru.roomUserRepo.AddUsersToRoom(ctx, roomId, userIDs); err != nil {
 		return fmt.Errorf("failed to add the users to the room: %w", err)
 	}
 

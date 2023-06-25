@@ -28,13 +28,13 @@ func (_m *RoomUsecase) CreateRoom(ctx context.Context, room *model.Room, ownerID
 	return r0
 }
 
-// DeleteRoom provides a mock function with given fields: ctx, roomID
-func (_m *RoomUsecase) DeleteRoom(ctx context.Context, roomID string) error {
-	ret := _m.Called(ctx, roomID)
+// DeleteRoom provides a mock function with given fields: ctx, roomId
+func (_m *RoomUsecase) DeleteRoom(ctx context.Context, roomId string) error {
+	ret := _m.Called(ctx, roomId)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, roomID)
+		r0 = rf(ctx, roomId)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -68,17 +68,17 @@ func (_m *RoomUsecase) GetAllPublicRoom(ctx context.Context) ([]*model.Room, err
 	return r0, r1
 }
 
-// GetRoomByID provides a mock function with given fields: ctx, roomID
-func (_m *RoomUsecase) GetRoomByID(ctx context.Context, roomID string) (*model.Room, error) {
-	ret := _m.Called(ctx, roomID)
+// GetRoomByID provides a mock function with given fields: ctx, roomId
+func (_m *RoomUsecase) GetRoomByID(ctx context.Context, roomId string) (*model.Room, error) {
+	ret := _m.Called(ctx, roomId)
 
 	var r0 *model.Room
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.Room, error)); ok {
-		return rf(ctx, roomID)
+		return rf(ctx, roomId)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) *model.Room); ok {
-		r0 = rf(ctx, roomID)
+		r0 = rf(ctx, roomId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Room)
@@ -86,7 +86,7 @@ func (_m *RoomUsecase) GetRoomByID(ctx context.Context, roomID string) (*model.R
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, roomID)
+		r1 = rf(ctx, roomId)
 	} else {
 		r1 = ret.Error(1)
 	}

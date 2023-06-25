@@ -25,12 +25,12 @@ func NewRoomRepository(db *dynamodb.DynamoDB) repository.RoomRepository {
 	}
 }
 
-func (r *RoomRepositoryImpl) GetById(ctx context.Context, roomID string) (*model.Room, error) {
+func (r *RoomRepositoryImpl) GetById(ctx context.Context, roomId string) (*model.Room, error) {
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(r.roomDBName),
 		Key: map[string]*dynamodb.AttributeValue{
-			"roomID": {
-				S: aws.String(roomID),
+			"roomId": {
+				S: aws.String(roomId),
 			},
 		},
 	}
@@ -42,7 +42,7 @@ func (r *RoomRepositoryImpl) GetById(ctx context.Context, roomID string) (*model
 	}
 
 	if len(result.Item) == 0 {
-		return nil, apperror.NewNotFoundErr("Room", "RoomID: "+roomID)
+		return nil, apperror.NewNotFoundErr("Room", "RoomID: "+roomId)
 	}
 
 	var room model.Room
@@ -130,10 +130,10 @@ func (r *RoomRepositoryImpl) CreateAndAddUser(ctx context.Context, room *model.R
 
 	// add owner to room
 	roomUserItem := map[string]*dynamodb.AttributeValue{
-		"roomID": {
+		"roomId": {
 			S: aws.String(room.RoomID),
 		},
-		"userID": {
+		"userId": {
 			S: aws.String(ownerID),
 		},
 	}
@@ -152,12 +152,12 @@ func (r *RoomRepositoryImpl) CreateAndAddUser(ctx context.Context, room *model.R
 	return err
 }
 
-func (r *RoomRepositoryImpl) Delete(ctx context.Context, roomID string) error {
+func (r *RoomRepositoryImpl) Delete(ctx context.Context, roomId string) error {
 	input := &dynamodb.DeleteItemInput{
 		TableName: aws.String("Rooms"),
 		Key: map[string]*dynamodb.AttributeValue{
-			"roomID": {
-				S: aws.String(roomID),
+			"roomId": {
+				S: aws.String(roomId),
 			},
 		},
 	}
@@ -173,7 +173,7 @@ func (r *RoomRepositoryImpl) Update(ctx context.Context, room *model.Room) error
 	input := &dynamodb.UpdateItemInput{
 		ExpressionAttributeNames: map[string]*string{
 			"#N": aws.String("name"),
-			"#T": aws.String("room_type"),
+			"#T": aws.String("roomType"),
 		},
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":n": {
@@ -185,7 +185,7 @@ func (r *RoomRepositoryImpl) Update(ctx context.Context, room *model.Room) error
 		},
 		TableName: aws.String(r.roomDBName),
 		Key: map[string]*dynamodb.AttributeValue{
-			"roomID": {
+			"roomId": {
 				S: aws.String(room.RoomID),
 			},
 		},

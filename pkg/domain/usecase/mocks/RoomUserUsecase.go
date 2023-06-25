@@ -14,13 +14,13 @@ type RoomUserUsecase struct {
 	mock.Mock
 }
 
-// AddUsersToRoom provides a mock function with given fields: ctx, roomID, userIDs
-func (_m *RoomUserUsecase) AddUsersToRoom(ctx context.Context, roomID string, userIDs []string) error {
-	ret := _m.Called(ctx, roomID, userIDs)
+// AddUsersToRoom provides a mock function with given fields: ctx, roomId, userIDs
+func (_m *RoomUserUsecase) AddUsersToRoom(ctx context.Context, roomId string, userIDs []string) error {
+	ret := _m.Called(ctx, roomId, userIDs)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
-		r0 = rf(ctx, roomID, userIDs)
+		r0 = rf(ctx, roomId, userIDs)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -28,17 +28,17 @@ func (_m *RoomUserUsecase) AddUsersToRoom(ctx context.Context, roomID string, us
 	return r0
 }
 
-// GetAllRoomsByUserID provides a mock function with given fields: ctx, userID
-func (_m *RoomUserUsecase) GetAllRoomsByUserID(ctx context.Context, userID string) ([]*model.Room, error) {
-	ret := _m.Called(ctx, userID)
+// GetAllRoomsByUserID provides a mock function with given fields: ctx, userId
+func (_m *RoomUserUsecase) GetAllRoomsByUserID(ctx context.Context, userId string) ([]*model.Room, error) {
+	ret := _m.Called(ctx, userId)
 
 	var r0 []*model.Room
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) ([]*model.Room, error)); ok {
-		return rf(ctx, userID)
+		return rf(ctx, userId)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) []*model.Room); ok {
-		r0 = rf(ctx, userID)
+		r0 = rf(ctx, userId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Room)
@@ -46,7 +46,7 @@ func (_m *RoomUserUsecase) GetAllRoomsByUserID(ctx context.Context, userID strin
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, userID)
+		r1 = rf(ctx, userId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -54,13 +54,13 @@ func (_m *RoomUserUsecase) GetAllRoomsByUserID(ctx context.Context, userID strin
 	return r0, r1
 }
 
-// RemoveUserFromRoom provides a mock function with given fields: ctx, roomID, userID
-func (_m *RoomUserUsecase) RemoveUserFromRoom(ctx context.Context, roomID string, userID string) error {
-	ret := _m.Called(ctx, roomID, userID)
+// RemoveUserFromRoom provides a mock function with given fields: ctx, roomId, userId
+func (_m *RoomUserUsecase) RemoveUserFromRoom(ctx context.Context, roomId string, userId string) error {
+	ret := _m.Called(ctx, roomId, userId)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, roomID, userID)
+		r0 = rf(ctx, roomId, userId)
 	} else {
 		r0 = ret.Error(0)
 	}

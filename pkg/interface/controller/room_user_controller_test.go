@@ -39,21 +39,21 @@ func TestGetAllRoomsByUserID(t *testing.T) {
 
 	testCases := []struct {
 		name         string
-		userID       string
+		userId       string
 		mockReturn   []*model.Room
 		expectedErr  error
 		expectedCode int
 	}{
 		{
 			name:         "Success",
-			userID:       "1",
+			userId:       "1",
 			mockReturn:   mockRooms,
 			expectedErr:  nil,
 			expectedCode: http.StatusOK,
 		},
 		{
 			name:         "Invalid UserID",
-			userID:       "invalid_userID",
+			userId:       "invalid_userID",
 			mockReturn:   nil,
 			expectedErr:  errors.New("some error"),
 			expectedCode: http.StatusInternalServerError,
@@ -62,9 +62,9 @@ func TestGetAllRoomsByUserID(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			mockUsecase.On("GetAllRoomsByUserID", mock.Anything, tc.userID).Return(tc.mockReturn, tc.expectedErr)
+			mockUsecase.On("GetAllRoomsByUserID", mock.Anything, tc.userId).Return(tc.mockReturn, tc.expectedErr)
 
-			_, ctx, response := prepareRequestAndContext(http.MethodGet, "users/"+tc.userID+"/rooms", gin.Params{{Key: "userID", Value: tc.userID}}, nil)
+			_, ctx, response := prepareRequestAndContext(http.MethodGet, "users/"+tc.userId+"/rooms", gin.Params{{Key: "userId", Value: tc.userId}}, nil)
 
 			uc.GetAllRoomsByUserID(ctx)
 
@@ -82,29 +82,29 @@ func TestRemoveUserFromRoom(t *testing.T) {
 
 	testCases := []struct {
 		name         string
-		roomID       string
-		userID       string
+		roomId       string
+		userId       string
 		expectedErr  error
 		expectedCode int
 	}{
 		{
 			name:         "Success",
-			roomID:       "1",
-			userID:       "1",
+			roomId:       "1",
+			userId:       "1",
 			expectedErr:  nil,
 			expectedCode: http.StatusOK,
 		},
 		{
 			name:         "Invalid RoomID",
-			roomID:       "invalid_roomID",
-			userID:       "1",
+			roomId:       "invalid_roomID",
+			userId:       "1",
 			expectedErr:  errors.New("some error"),
 			expectedCode: http.StatusInternalServerError,
 		},
 		{
 			name:         "Invalid UserID",
-			roomID:       "1",
-			userID:       "invalid_userID",
+			roomId:       "1",
+			userId:       "invalid_userID",
 			expectedErr:  errors.New("some error"),
 			expectedCode: http.StatusInternalServerError,
 		},
@@ -112,9 +112,9 @@ func TestRemoveUserFromRoom(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			mockUsecase.On("RemoveUserFromRoom", mock.Anything, tc.roomID, tc.userID).Return(tc.expectedErr)
+			mockUsecase.On("RemoveUserFromRoom", mock.Anything, tc.roomId, tc.userId).Return(tc.expectedErr)
 
-			_, ctx, response := prepareRequestAndContext(http.MethodDelete, "rooms/"+tc.roomID+"/users/"+tc.userID, gin.Params{{Key: "roomID", Value: tc.roomID}, {Key: "userID", Value: tc.userID}}, nil)
+			_, ctx, response := prepareRequestAndContext(http.MethodDelete, "rooms/"+tc.roomId+"/users/"+tc.userId, gin.Params{{Key: "roomId", Value: tc.roomId}, {Key: "userId", Value: tc.userId}}, nil)
 
 			uc.RemoveUserFromRoom(ctx)
 
@@ -132,28 +132,28 @@ func TestAddUsersToRoom(t *testing.T) {
 
 	testCases := []struct {
 		name         string
-		roomID       string
+		roomId       string
 		userIDs      []string
 		expectedErr  error
 		expectedCode int
 	}{
 		{
 			name:         "Success",
-			roomID:       "1",
+			roomId:       "1",
 			userIDs:      []string{"1", "2"},
 			expectedErr:  nil,
 			expectedCode: http.StatusCreated,
 		},
 		{
 			name:         "Invalid RoomID",
-			roomID:       "invalid_roomID",
+			roomId:       "invalid_roomID",
 			userIDs:      []string{"1", "2"},
 			expectedErr:  errors.New("some error"),
 			expectedCode: http.StatusInternalServerError,
 		},
 		{
 			name:         "Invalid UserID",
-			roomID:       "1",
+			roomId:       "1",
 			userIDs:      []string{"invalid_userID", "2"},
 			expectedErr:  errors.New("some error"),
 			expectedCode: http.StatusInternalServerError,
@@ -162,19 +162,19 @@ func TestAddUsersToRoom(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			mockUsecase.On("AddUsersToRoom", mock.Anything, tc.roomID, tc.userIDs).Return(tc.expectedErr)
+			mockUsecase.On("AddUsersToRoom", mock.Anything, tc.roomId, tc.userIDs).Return(tc.expectedErr)
 
 			req := struct {
-				RoomID  string   `json:"roomID"`
+				RoomID  string   `json:"roomId"`
 				UserIDs []string `json:"userIDs"`
 			}{
-				RoomID:  tc.roomID,
+				RoomID:  tc.roomId,
 				UserIDs: tc.userIDs,
 			}
 
 			reqBody, _ := json.Marshal(req)
 
-			_, ctx, response := prepareRequestAndContext(http.MethodPost, "rooms/"+tc.roomID+"/users", gin.Params{{Key: "roomID", Value: tc.roomID}}, bytes.NewBuffer(reqBody))
+			_, ctx, response := prepareRequestAndContext(http.MethodPost, "rooms/"+tc.roomId+"/users", gin.Params{{Key: "roomId", Value: tc.roomId}}, bytes.NewBuffer(reqBody))
 
 			uc.AddUsersToRoom(ctx)
 
