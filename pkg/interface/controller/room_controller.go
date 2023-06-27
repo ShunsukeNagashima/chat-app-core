@@ -46,7 +46,7 @@ func (rc *RoomController) CreateRoom(ctx *gin.Context) {
 	var req struct {
 		Name     string `json:"name" validate:"required,min=1,max=30,alnumdash"`
 		RoomType string `json:"roomType" validate:"required,oneof=public private"`
-		OwnerID  string `json:"ownerID" validate:"required"`
+		OwnerID  string `json:"ownerId" validate:"required"`
 	}
 
 	if err := ctx.BindJSON(&req); err != nil {

@@ -10,7 +10,7 @@ import (
 type RoomUsecase interface {
 	GetRoomByID(ctx context.Context, roomId string) (*model.Room, error)
 	GetAllPublicRoom(ctx context.Context) ([]*model.Room, error)
-	CreateRoom(ctx context.Context, room *model.Room, ownerID string) error
+	CreateRoom(ctx context.Context, room *model.Room, ownerId string) error
 	DeleteRoom(ctx context.Context, roomId string) error
 	UpdateRoom(ctx context.Context, room *model.Room) error
 }

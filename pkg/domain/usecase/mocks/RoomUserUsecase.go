@@ -14,13 +14,13 @@ type RoomUserUsecase struct {
 	mock.Mock
 }
 
-// AddUsersToRoom provides a mock function with given fields: ctx, roomId, userIDs
-func (_m *RoomUserUsecase) AddUsersToRoom(ctx context.Context, roomId string, userIDs []string) error {
-	ret := _m.Called(ctx, roomId, userIDs)
+// AddUsersToRoom provides a mock function with given fields: ctx, roomId, userIds
+func (_m *RoomUserUsecase) AddUsersToRoom(ctx context.Context, roomId string, userIds []string) error {
+	ret := _m.Called(ctx, roomId, userIds)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
-		r0 = rf(ctx, roomId, userIDs)
+		r0 = rf(ctx, roomId, userIds)
 	} else {
 		r0 = ret.Error(0)
 	}

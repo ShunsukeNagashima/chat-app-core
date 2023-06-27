@@ -11,7 +11,7 @@ type RoomRepository interface {
 	GetById(ctx context.Context, roomId string) (*model.Room, error)
 	GetByName(ctx context.Context, name string) (*model.Room, error)
 	GetAllPublic(ctx context.Context) ([]*model.Room, error)
-	CreateAndAddUser(ctx context.Context, room *model.Room, ownerID string) error
+	CreateAndAddUser(ctx context.Context, room *model.Room, ownerId string) error
 	Delete(ctx context.Context, roomId string) error
 	Update(ctx context.Context, room *model.Room) error
 }

@@ -81,7 +81,7 @@ func TestCreateRoom(t *testing.T) {
 	testCases := []struct {
 		name                   string
 		room                   *model.Room
-		ownerID                string
+		ownerId                string
 		mockRoomRepoReturn     *model.Room
 		mockUserRepoReturn     *model.User
 		mockRoomUserRepoReturn error
@@ -90,7 +90,7 @@ func TestCreateRoom(t *testing.T) {
 		{
 			name:                   "Success",
 			room:                   mockRoom,
-			ownerID:                "1",
+			ownerId:                "1",
 			mockRoomRepoReturn:     nil,
 			mockUserRepoReturn:     mockUser,
 			mockRoomUserRepoReturn: nil,
@@ -99,7 +99,7 @@ func TestCreateRoom(t *testing.T) {
 		{
 			name:                   "Invalid OwnerID",
 			room:                   mockRoom,
-			ownerID:                "invalid_ownerID",
+			ownerId:                "invalid_ownerID",
 			mockRoomRepoReturn:     nil,
 			mockUserRepoReturn:     nil,
 			mockRoomUserRepoReturn: nil,
@@ -108,7 +108,7 @@ func TestCreateRoom(t *testing.T) {
 		{
 			name:                   "Duplicated Room Name",
 			room:                   mockRoom,
-			ownerID:                "1",
+			ownerId:                "1",
 			mockRoomRepoReturn:     mockRoom,
 			mockUserRepoReturn:     nil,
 			mockRoomUserRepoReturn: nil,
@@ -122,12 +122,12 @@ func TestCreateRoom(t *testing.T) {
 			mockUserRepo := new(mocks.UserRepository)
 
 			mockRoomRepo.On("GetByName", mock.Anything, tc.room.Name).Return(tc.mockRoomRepoReturn, nil)
-			mockUserRepo.On("GetByID", mock.Anything, tc.ownerID).Return(tc.mockUserRepoReturn, nil)
-			mockRoomRepo.On("CreateAndAddUser", mock.Anything, tc.room, tc.ownerID).Return(nil)
+			mockUserRepo.On("GetByID", mock.Anything, tc.ownerId).Return(tc.mockUserRepoReturn, nil)
+			mockRoomRepo.On("CreateAndAddUser", mock.Anything, tc.room, tc.ownerId).Return(nil)
 
 			roomUsecase := NewRoomUsecase(mockRoomRepo, mockUserRepo)
 
-			err := roomUsecase.CreateRoom(context.Background(), tc.room, tc.ownerID)
+			err := roomUsecase.CreateRoom(context.Background(), tc.room, tc.ownerId)
 
 			if tc.expectedErr != nil {
 				assert.Error(t, err)

@@ -32,7 +32,7 @@ func TestCreateRoom(t *testing.T) {
 			reqBody: map[string]string{
 				"name":     "chat_room",
 				"roomType": "public",
-				"ownerID":  "1",
+				"ownerId":  "1",
 			},
 			mockReturn:   nil,
 			expectedCode: http.StatusCreated,
@@ -42,7 +42,7 @@ func TestCreateRoom(t *testing.T) {
 			reqBody: map[string]string{
 				"name":     "chat_room",
 				"roomType": "invalid",
-				"ownerID":  "1",
+				"ownerId":  "1",
 			},
 			mockReturn:   nil,
 			expectedCode: http.StatusBadRequest,
@@ -52,7 +52,7 @@ func TestCreateRoom(t *testing.T) {
 			reqBody: map[string]string{
 				"name":     "invalid%room",
 				"roomType": "public",
-				"ownerID":  "1",
+				"ownerId":  "1",
 			},
 			mockReturn:   nil,
 			expectedCode: http.StatusBadRequest,
@@ -61,7 +61,7 @@ func TestCreateRoom(t *testing.T) {
 			name: "Missing roomType",
 			reqBody: map[string]string{
 				"name":    "chat_room",
-				"ownerID": "1",
+				"ownerId": "1",
 			},
 			mockReturn:   nil,
 			expectedCode: http.StatusBadRequest,
@@ -70,13 +70,13 @@ func TestCreateRoom(t *testing.T) {
 			name: "Missing name",
 			reqBody: map[string]string{
 				"roomType": "public",
-				"ownerID":  "1",
+				"ownerId":  "1",
 			},
 			mockReturn:   nil,
 			expectedCode: http.StatusBadRequest,
 		},
 		{
-			name: "Missing ownerID",
+			name: "Missing ownerId",
 			reqBody: map[string]string{
 				"name":     "chat_room",
 				"roomType": "public",

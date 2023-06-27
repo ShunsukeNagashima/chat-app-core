@@ -30,7 +30,7 @@ func (ru *RoomUsecaseImpl) GetAllPublicRoom(ctx context.Context) ([]*model.Room,
 	return ru.roomRepo.GetAllPublic(ctx)
 }
 
-func (ru *RoomUsecaseImpl) CreateRoom(ctx context.Context, room *model.Room, ownerID string) error {
+func (ru *RoomUsecaseImpl) CreateRoom(ctx context.Context, room *model.Room, ownerId string) error {
 	existingRoom, err := ru.roomRepo.GetByName(ctx, room.Name)
 	if err != nil {
 		return err
@@ -39,15 +39,15 @@ func (ru *RoomUsecaseImpl) CreateRoom(ctx context.Context, room *model.Room, own
 		return apperror.NewAlreadyExistsErr("Room", "RoomName: "+room.Name)
 	}
 
-	owner, err := ru.userRepo.GetByID(ctx, ownerID)
+	owner, err := ru.userRepo.GetByID(ctx, ownerId)
 	if err != nil {
 		return err
 	}
 	if owner == nil {
-		return apperror.NewNotFoundErr("User", "UserID: "+ownerID)
+		return apperror.NewNotFoundErr("User", "UserID: "+ownerId)
 	}
 
-	if err := ru.roomRepo.CreateAndAddUser(ctx, room, ownerID); err != nil {
+	if err := ru.roomRepo.CreateAndAddUser(ctx, room, ownerId); err != nil {
 		return err
 	}
 

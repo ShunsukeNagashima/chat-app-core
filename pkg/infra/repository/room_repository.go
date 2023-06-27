@@ -112,7 +112,7 @@ func (r *RoomRepositoryImpl) GetAllPublic(ctx context.Context) ([]*model.Room, e
 	return rooms, nil
 }
 
-func (r *RoomRepositoryImpl) CreateAndAddUser(ctx context.Context, room *model.Room, ownerID string) error {
+func (r *RoomRepositoryImpl) CreateAndAddUser(ctx context.Context, room *model.Room, ownerId string) error {
 	transactItems := []*dynamodb.TransactWriteItem{}
 
 	// create room
@@ -134,7 +134,7 @@ func (r *RoomRepositoryImpl) CreateAndAddUser(ctx context.Context, room *model.R
 			S: aws.String(room.RoomID),
 		},
 		"userId": {
-			S: aws.String(ownerID),
+			S: aws.String(ownerId),
 		},
 	}
 

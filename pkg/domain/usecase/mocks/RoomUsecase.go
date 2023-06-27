@@ -14,13 +14,13 @@ type RoomUsecase struct {
 	mock.Mock
 }
 
-// CreateRoom provides a mock function with given fields: ctx, room, ownerID
-func (_m *RoomUsecase) CreateRoom(ctx context.Context, room *model.Room, ownerID string) error {
-	ret := _m.Called(ctx, room, ownerID)
+// CreateRoom provides a mock function with given fields: ctx, room, ownerId
+func (_m *RoomUsecase) CreateRoom(ctx context.Context, room *model.Room, ownerId string) error {
+	ret := _m.Called(ctx, room, ownerId)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *model.Room, string) error); ok {
-		r0 = rf(ctx, room, ownerID)
+		r0 = rf(ctx, room, ownerId)
 	} else {
 		r0 = ret.Error(0)
 	}
