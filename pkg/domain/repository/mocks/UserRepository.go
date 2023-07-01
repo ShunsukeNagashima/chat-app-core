@@ -54,6 +54,32 @@ func (_m *UserRepository) GetByID(ctx context.Context, userId string) (*model.Us
 	return r0, r1
 }
 
+// SearchUsers provides a mock function with given fields: ctx, query, from, size
+func (_m *UserRepository) SearchUsers(ctx context.Context, query string, from int, size int) ([]*model.User, error) {
+	ret := _m.Called(ctx, query, from, size)
+
+	var r0 []*model.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, int, int) ([]*model.User, error)); ok {
+		return rf(ctx, query, from, size)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, int, int) []*model.User); ok {
+		r0 = rf(ctx, query, from, size)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, int, int) error); ok {
+		r1 = rf(ctx, query, from, size)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 type mockConstructorTestingTNewUserRepository interface {
 	mock.TestingT
 	Cleanup(func())

@@ -24,6 +24,14 @@ type UserRepositoryImpl struct {
 	dbName string
 }
 
+type EsSearchResponse struct {
+	Hits struct {
+		Hits []struct {
+			Source *model.User `json:"_source"`
+		} `json:"hits"`
+	} `json:"hits"`
+}
+
 func NewUserRepository(db *dynamodb.DynamoDB, es *elasticsearch.Client) repository.UserRepository {
 	return &UserRepositoryImpl{
 		db,
@@ -115,4 +123,49 @@ func (r *UserRepositoryImpl) GetByID(ctx context.Context, userId string) (*model
 	}
 
 	return &user, nil
+}
+
+func (r *UserRepositoryImpl) SearchUsers(ctx context.Context, query string, from, size int) ([]*model.User, error) {
+	var buf bytes.Buffer
+	queryMap := map[string]interface{}{
+		"from": from,
+		"size": size,
+		"query": map[string]interface{}{
+			"match_phrase_prefix": map[string]interface{}{
+				"userName": query,
+			},
+		},
+	}
+
+	if err := json.NewEncoder(&buf).Encode(queryMap); err != nil {
+		return nil, err
+	}
+
+	res, err := r.es.Search(
+		r.es.Search.WithContext(ctx),
+		r.es.Search.WithIndex("users"),
+		r.es.Search.WithBody(&buf),
+		r.es.Search.WithTrackTotalHits(true),
+		r.es.Search.WithPretty(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return nil, fmt.Errorf("error getting response: %s", res.String())
+	}
+
+	var esResponse EsSearchResponse
+	if err := json.NewDecoder(res.Body).Decode(&esResponse); err != nil {
+		return nil, err
+	}
+
+	users := make([]*model.User, len(esResponse.Hits.Hits))
+	for i, hit := range esResponse.Hits.Hits {
+		users[i] = hit.Source
+	}
+
+	return users, nil
 }
