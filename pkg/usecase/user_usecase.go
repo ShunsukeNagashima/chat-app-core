@@ -47,3 +47,7 @@ func (uu *UserUsecaseImpl) CreateUser(ctx context.Context, user *model.User, idT
 func (uu *UserUsecaseImpl) GetUserByID(ctx context.Context, userId string) (*model.User, error) {
 	return uu.repo.GetByID(ctx, userId)
 }
+
+func (uu *UserUsecaseImpl) SearchUsers(ctx context.Context, query string, from, size int) ([]*model.User, error) {
+	return uu.repo.SearchUsers(ctx, query, from, size)
+}

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	"firebase.google.com/go/auth"
@@ -75,4 +76,32 @@ func TestCreateUser_WhenIDIsntMatch(t *testing.T) {
 	assert.Error(t, err)
 	assert.EqualError(t, err, "provided user ID does not match the user ID in Firebase token")
 	mockAuth.AssertExpectations(t)
+}
+
+func TestSearchUsers(t *testing.T) {
+	mockRepo := new(repoMocks.UserRepository)
+	mockAuth := new(authMocks.FirebaseAuthenticator)
+
+	var mockUsers []*model.User
+
+	for i := 1; i <= 3; i++ {
+		iStr := strconv.Itoa(i)
+		mockUser := &model.User{
+			UserID:   "id-" + iStr,
+			Username: "user-" + iStr,
+			Email:    "user-" + iStr + "@example.com",
+		}
+		mockUsers = append(mockUsers, mockUser)
+	}
+
+	mockRepo.On("SearchUsers", mock.Anything, "user", 0, 10).Return(mockUsers, nil)
+
+	userUsecase := NewUserUsecase(mockRepo, mockAuth)
+
+	users, err := userUsecase.SearchUsers(context.Background(), "user", 0, 10)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, users)
+	assert.Equal(t, len(mockUsers), len(users))
+	mockRepo.AssertExpectations(t)
 }
