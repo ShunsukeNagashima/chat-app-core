@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -73,11 +74,16 @@ func initializeControllers(ctx context.Context) (*controller.Controllers, error)
 		return nil, err
 	}
 
+	es, err := elasticsearch.NewDefaultClient()
+	if err != nil {
+		return nil, err
+	}
+
 	fa := auth.NewFirebaseAuth(client)
 
 	rr := repository.NewRoomRepository(db)
 	rur := repository.NewRoomUserRepository(db)
-	ur := repository.NewUserRepository(db)
+	ur := repository.NewUserRepository(db, es)
 
 	ru := usecase.NewRoomUsecase(rr, ur)
 	ruu := usecase.NewRoomUserUsecase(rur, ur, rr)
