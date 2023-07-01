@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -165,4 +166,43 @@ func TestCreateUser(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSearchUsers(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	mockUsecase := new(mocks.UserUsecase)
+	validator := validator.New()
+
+	var mockUsers []*model.User
+	for i := 1; i <= 3; i++ {
+		mockUsers = append(mockUsers, &model.User{
+			UserID:   strconv.Itoa(i),
+			Username: "user-" + strconv.Itoa(i),
+			Email:    "user-" + strconv.Itoa(i) + "@example.com",
+		})
+	}
+
+	request, _ := http.NewRequest(http.MethodPost, "/users/search?query=user&from=0&size=10", nil)
+	response := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(response)
+	ctx.Request = request
+
+	mockUsecase.On("SearchUsers", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mockUsers, nil)
+
+	uc := NewUserController(mockUsecase, validator)
+
+	uc.SearchUsers(ctx)
+
+	assert.Equal(t, http.StatusOK, response.Code)
+
+	var result struct {
+		Result []*model.User `json:"result"`
+	}
+
+	if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, mockUsers, result.Result)
+	mockUsecase.AssertExpectations(t)
 }
