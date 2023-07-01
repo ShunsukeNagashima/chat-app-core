@@ -1,11 +1,18 @@
 package repository
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/shunsukenagashima/chat-api/pkg/apperror"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/repository"
@@ -13,12 +20,14 @@ import (
 
 type UserRepositoryImpl struct {
 	db     *dynamodb.DynamoDB
+	es     *elasticsearch.Client
 	dbName string
 }
 
-func NewUserRepository(db *dynamodb.DynamoDB) repository.UserRepository {
+func NewUserRepository(db *dynamodb.DynamoDB, es *elasticsearch.Client) repository.UserRepository {
 	return &UserRepositoryImpl{
 		db,
+		es,
 		"Users",
 	}
 }
@@ -38,6 +47,45 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, user *model.User) error
 	if err != nil {
 		return err
 	}
+
+	userJson, err := json.Marshal(user)
+	if err != nil {
+		return err
+	}
+
+	req := esapi.IndexRequest{
+		Index:      "users",
+		DocumentID: user.UserID,
+		Body:       bytes.NewReader(userJson),
+		Refresh:    "true",
+	}
+
+	retryCount := 3
+	var lastErr error
+
+	for i := 0; i < retryCount; i++ {
+		res, err := req.Do(ctx, r.es)
+		if err != nil {
+			log.Printf("Error when trying to create index for user: %v", err)
+			continue
+		}
+
+		defer res.Body.Close()
+
+		if res.StatusCode != http.StatusCreated {
+			log.Printf("Unexpected status code returned %d", res.StatusCode)
+			lastErr = fmt.Errorf("unexpected status code: %d", res.StatusCode)
+			continue
+		}
+
+		lastErr = nil
+		break
+	}
+
+	if lastErr != nil {
+		log.Printf("Failed to create index for user after %d attempts", retryCount)
+	}
+
 	return nil
 }
 
