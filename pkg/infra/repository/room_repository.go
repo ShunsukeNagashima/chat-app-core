@@ -25,7 +25,7 @@ func NewRoomRepository(db *dynamodb.DynamoDB) repository.RoomRepository {
 	}
 }
 
-func (r *RoomRepositoryImpl) GetById(ctx context.Context, roomId string) (*model.Room, error) {
+func (r *RoomRepositoryImpl) GetByID(ctx context.Context, roomId string) (*model.Room, error) {
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(r.roomDBName),
 		Key: map[string]*dynamodb.AttributeValue{

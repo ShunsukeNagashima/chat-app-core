@@ -68,8 +68,8 @@ func (_m *RoomRepository) GetAllPublic(ctx context.Context) ([]*model.Room, erro
 	return r0, r1
 }
 
-// GetById provides a mock function with given fields: ctx, roomId
-func (_m *RoomRepository) GetById(ctx context.Context, roomId string) (*model.Room, error) {
+// GetByID provides a mock function with given fields: ctx, roomId
+func (_m *RoomRepository) GetByID(ctx context.Context, roomId string) (*model.Room, error) {
 	ret := _m.Called(ctx, roomId)
 
 	var r0 *model.Room

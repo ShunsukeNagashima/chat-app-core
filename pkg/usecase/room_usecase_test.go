@@ -21,7 +21,7 @@ func TestGetRoomByID(t *testing.T) {
 		RoomType: model.Public,
 	}
 
-	mockRoomRepo.On("GetById", mock.Anything, mockRoom.RoomID).Return(mockRoom, nil)
+	mockRoomRepo.On("GetByID", mock.Anything, mockRoom.RoomID).Return(mockRoom, nil)
 	roomUsecase := NewRoomUsecase(mockRoomRepo, mockUserRepo)
 
 	room, err := roomUsecase.GetRoomByID(context.Background(), mockRoom.RoomID)
@@ -176,7 +176,7 @@ func TestDeleteRoom(t *testing.T) {
 			mockRoomRepo := new(mocks.RoomRepository)
 			mockUserRepo := new(mocks.UserRepository)
 
-			mockRoomRepo.On("GetById", mock.Anything, tc.roomId).Return(tc.mockRoomRepoReturn, nil)
+			mockRoomRepo.On("GetByID", mock.Anything, tc.roomId).Return(tc.mockRoomRepoReturn, nil)
 			mockRoomRepo.On("Delete", mock.Anything, tc.roomId).Return(nil)
 
 			roomUsecase := NewRoomUsecase(mockRoomRepo, mockUserRepo)

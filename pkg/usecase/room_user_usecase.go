@@ -31,7 +31,7 @@ func (ru *RoomUserUsecaseImpl) GetAllRoomsByUserID(ctx context.Context, userId s
 
 	var rooms []*model.Room
 	for _, roomUser := range roomUsers {
-		room, err := ru.roomRepo.GetById(ctx, roomUser.RoomID)
+		room, err := ru.roomRepo.GetByID(ctx, roomUser.RoomID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get room by ID: %w", err)
 		}
@@ -56,7 +56,7 @@ func (ru *RoomUserUsecaseImpl) AddUsersToRoom(ctx context.Context, roomId string
 		}
 	}
 
-	room, err := ru.roomRepo.GetById(ctx, roomId)
+	room, err := ru.roomRepo.GetByID(ctx, roomId)
 	if err != nil {
 		return fmt.Errorf("failed to fetch the room with ID %s: %w", roomId, err)
 	}

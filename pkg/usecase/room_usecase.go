@@ -23,7 +23,7 @@ func NewRoomUsecase(roomRepo repository.RoomRepository, userRepo repository.User
 }
 
 func (ru *RoomUsecaseImpl) GetRoomByID(ctx context.Context, roomId string) (*model.Room, error) {
-	return ru.roomRepo.GetById(ctx, roomId)
+	return ru.roomRepo.GetByID(ctx, roomId)
 }
 
 func (ru *RoomUsecaseImpl) GetAllPublicRoom(ctx context.Context) ([]*model.Room, error) {
@@ -55,7 +55,7 @@ func (ru *RoomUsecaseImpl) CreateRoom(ctx context.Context, room *model.Room, own
 }
 
 func (ru *RoomUsecaseImpl) DeleteRoom(ctx context.Context, roomId string) error {
-	room, err := ru.roomRepo.GetById(ctx, roomId)
+	room, err := ru.roomRepo.GetByID(ctx, roomId)
 	if err != nil {
 		return err
 	}

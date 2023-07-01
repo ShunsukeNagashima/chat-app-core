@@ -40,8 +40,8 @@ func TestGetAllRoomsByUserID(t *testing.T) {
 	}
 
 	mockRoomUserRepo.On("GetAllRoomsByUserID", mock.Anything, mock.Anything).Return(mockRoomUsers, nil)
-	mockRoomRepo.On("GetById", mock.Anything, mock.Anything).Return(mockRooms[0], nil).Once()
-	mockRoomRepo.On("GetById", mock.Anything, mock.Anything).Return(mockRooms[1], nil).Once()
+	mockRoomRepo.On("GetByID", mock.Anything, mock.Anything).Return(mockRooms[0], nil).Once()
+	mockRoomRepo.On("GetByID", mock.Anything, mock.Anything).Return(mockRooms[1], nil).Once()
 
 	roomUserUsecase := NewRoomUserUsecase(mockRoomUserRepo, mockUserRepo, mockRoomRepo)
 
@@ -143,9 +143,9 @@ func TestAddUsersToRoom(t *testing.T) {
 			mockRoomUserRepo.On("AddUsersToRoom", mock.Anything, tc.roomId, tc.userIDs).Return(nil)
 
 			if tc.roomId == "invalid_room_id" {
-				mockRoomRepo.On("GetById", mock.Anything, tc.roomId).Return(nil, errors.New("room not found"))
+				mockRoomRepo.On("GetByID", mock.Anything, tc.roomId).Return(nil, errors.New("room not found"))
 			} else {
-				mockRoomRepo.On("GetById", mock.Anything, tc.roomId).Return(mockRoom, nil)
+				mockRoomRepo.On("GetByID", mock.Anything, tc.roomId).Return(mockRoom, nil)
 			}
 
 			roomUserUsecase := NewRoomUserUsecase(mockRoomUserRepo, mockUserRepo, mockRoomRepo)
