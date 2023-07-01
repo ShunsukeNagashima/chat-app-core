@@ -25,7 +25,7 @@ func (rc *RoomUserController) GetAllRoomsByUserID(ctx *gin.Context) {
 
 	rooms, err := rc.roomUserUsecase.GetAllRoomsByUserID(ctx, userId)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

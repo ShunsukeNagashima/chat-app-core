@@ -19,10 +19,7 @@ import (
 
 func TestGetAllRoomsByUserID(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	mockUsecase := new(mocks.RoomUserUsecase)
 	validator := validator.New()
-
-	uc := NewRoomUserController(mockUsecase, validator)
 
 	mockRooms := []*model.Room{
 		{
@@ -62,7 +59,11 @@ func TestGetAllRoomsByUserID(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			mockUsecase := new(mocks.RoomUserUsecase)
+
 			mockUsecase.On("GetAllRoomsByUserID", mock.Anything, tc.userId).Return(tc.mockReturn, tc.expectedErr)
+
+			uc := NewRoomUserController(mockUsecase, validator)
 
 			_, ctx, response := prepareRequestAndContext(http.MethodGet, "users/"+tc.userId+"/rooms", gin.Params{{Key: "userId", Value: tc.userId}}, nil)
 
@@ -187,16 +188,22 @@ func prepareRequestAndContext(method, url string, params gin.Params, body io.Rea
 func checkResponseMessage(t *testing.T, expectedErr error, expectedCode int, response *httptest.ResponseRecorder, expectedMessage string) {
 	assert.Equal(t, expectedCode, response.Code)
 
-	var responseBody map[string]string
-
-	if err := json.Unmarshal(response.Body.Bytes(), &responseBody); err != nil {
-		t.Fatal(err)
-	}
-
 	if expectedErr == nil {
-		assert.Equal(t, expectedMessage, responseBody["result"])
+		var result struct {
+			Result string `json:"result"`
+		}
+		if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, expectedMessage, result.Result)
 	} else {
-		assert.Equal(t, expectedErr.Error(), responseBody["error"])
+		var result struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, expectedErr.Error(), result.Error)
 	}
 }
 
@@ -213,11 +220,11 @@ func checkResponseRooms(t *testing.T, expectedErr error, expectedCode int, respo
 	} else {
 		assert.Equal(t, expectedCode, response.Code)
 		var result struct {
-			Message string `json:"message"`
+			Error string `json:"error"`
 		}
 		if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, expectedErr.Error(), result.Message)
+		assert.Equal(t, expectedErr.Error(), result.Error)
 	}
 }

@@ -112,7 +112,6 @@ func TestCreateRoom(t *testing.T) {
 				json.Unmarshal(response.Body.Bytes(), &responseBody)
 
 				result, _ := responseBody["result"].(map[string]interface{})
-				t.Log(result)
 				assert.Equal(t, tc.reqBody["name"], result["name"])
 				assert.Equal(t, tc.reqBody["roomType"], result["roomType"])
 			}
@@ -173,14 +172,13 @@ func TestGetRoomByID(t *testing.T) {
 
 			if tc.expectedCode == http.StatusOK {
 				mockUsecase.AssertExpectations(t)
-				var responseBody map[string]interface{}
-				json.Unmarshal(response.Body.Bytes(), &responseBody)
 
-				var resultRoom model.Room
-				roomBytes, _ := json.Marshal(responseBody["result"])
-				json.Unmarshal(roomBytes, &resultRoom)
+				var result struct {
+					Result model.Room `json:"result"`
+				}
 
-				assert.Equal(t, mockRoom, resultRoom)
+				json.Unmarshal(response.Body.Bytes(), &result)
+				assert.Equal(t, mockRoom, result.Result)
 			}
 		})
 	}
@@ -243,14 +241,13 @@ func TestGetAllPublicRooms(t *testing.T) {
 
 			if tc.expectedCode == http.StatusOK {
 				mockUsecase.AssertExpectations(t)
-				var responseBody map[string]interface{}
-				json.Unmarshal(response.Body.Bytes(), &responseBody)
 
-				var resultRooms []*model.Room
-				roomBytes, _ := json.Marshal(responseBody["result"])
-				json.Unmarshal(roomBytes, &resultRooms)
+				var result struct {
+					Result []*model.Room `json:"result"`
+				}
+				json.Unmarshal(response.Body.Bytes(), &result)
 
-				assert.Equal(t, mockRooms, resultRooms)
+				assert.Equal(t, mockRooms, result.Result)
 			}
 		})
 	}
@@ -301,10 +298,14 @@ func TestDeleteRoom(t *testing.T) {
 
 			if tc.expectedCode == http.StatusOK {
 				mockUsecase.AssertExpectations(t)
-				var responseBody map[string]interface{}
-				json.Unmarshal(response.Body.Bytes(), &responseBody)
 
-				assert.Equal(t, "room deleted successfully", responseBody["result"])
+				var result struct {
+					Result string `json:"result"`
+				}
+
+				json.Unmarshal(response.Body.Bytes(), &result)
+
+				assert.Equal(t, "room deleted successfully", result.Result)
 			}
 		})
 	}
@@ -376,10 +377,13 @@ func TestUpdateRoom(t *testing.T) {
 
 			if tc.expectedCode == http.StatusOK {
 				mockUsecase.AssertExpectations(t)
-				var responseBody map[string]interface{}
-				json.Unmarshal(response.Body.Bytes(), &responseBody)
 
-				assert.Equal(t, "room updated successfully", responseBody["result"])
+				var result struct {
+					Result string `json:"result"`
+				}
+				json.Unmarshal(response.Body.Bytes(), &result)
+
+				assert.Equal(t, "room updated successfully", result.Result)
 			}
 		})
 	}

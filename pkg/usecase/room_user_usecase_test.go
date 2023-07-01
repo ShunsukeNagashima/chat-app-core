@@ -28,7 +28,20 @@ func TestGetAllRoomsByUserID(t *testing.T) {
 		},
 	}
 
-	mockRoomUserRepo.On("GetAllRoomsByUserID", mock.Anything, mock.Anything).Return(mockRooms, nil)
+	mockRoomUsers := []*model.RoomUser{
+		{
+			RoomID: "1",
+			UserID: "1",
+		},
+		{
+			RoomID: "2",
+			UserID: "1",
+		},
+	}
+
+	mockRoomUserRepo.On("GetAllRoomsByUserID", mock.Anything, mock.Anything).Return(mockRoomUsers, nil)
+	mockRoomRepo.On("GetById", mock.Anything, mock.Anything).Return(mockRooms[0], nil).Once()
+	mockRoomRepo.On("GetById", mock.Anything, mock.Anything).Return(mockRooms[1], nil).Once()
 
 	roomUserUsecase := NewRoomUserUsecase(mockRoomUserRepo, mockUserRepo, mockRoomRepo)
 

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"firebase.google.com/go/auth"
+	"github.com/shunsukenagashima/chat-api/pkg/apperror"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	repoMocks "github.com/shunsukenagashima/chat-api/pkg/domain/repository/mocks"
 	authMocks "github.com/shunsukenagashima/chat-api/pkg/infra/auth/mocks"
@@ -47,6 +48,7 @@ func TestCreateUser(t *testing.T) {
 	idToken := "test_id_token"
 
 	mockRepo.On("Create", mock.Anything, mockUser).Return(nil)
+	mockRepo.On("GetByID", mock.Anything, mockUser.UserID).Return(nil, &apperror.NotFoundErr{})
 	mockAuth.On("GetFirebaseUser", mock.Anything, idToken).Return(&auth.Token{UID: "1"}, nil)
 
 	userUsecase := NewUserUsecase(mockRepo, mockAuth)

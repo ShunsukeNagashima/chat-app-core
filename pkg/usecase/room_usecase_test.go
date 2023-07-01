@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/shunsukenagashima/chat-api/pkg/apperror"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/repository/mocks"
 	"github.com/stretchr/testify/assert"
@@ -103,7 +104,7 @@ func TestCreateRoom(t *testing.T) {
 			mockRoomRepoReturn:     nil,
 			mockUserRepoReturn:     nil,
 			mockRoomUserRepoReturn: nil,
-			expectedErr:            errors.New("user with the ID 'invalid_ownerID' couldn't be found"),
+			expectedErr:            apperror.NewNotFoundErr("User", "UserID: invalid_ownerID"),
 		},
 		{
 			name:                   "Duplicated Room Name",
@@ -112,7 +113,7 @@ func TestCreateRoom(t *testing.T) {
 			mockRoomRepoReturn:     mockRoom,
 			mockUserRepoReturn:     nil,
 			mockRoomUserRepoReturn: nil,
-			expectedErr:            errors.New("name of chat room 'Room1' is duplicated"),
+			expectedErr:            apperror.NewAlreadyExistsErr("Room", "RoomName: "+mockRoom.Name),
 		},
 	}
 
