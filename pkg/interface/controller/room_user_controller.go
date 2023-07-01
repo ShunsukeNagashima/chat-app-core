@@ -45,9 +45,10 @@ func (rc *RoomUserController) RemoveUserFromRoom(ctx *gin.Context) {
 }
 
 func (rc *RoomUserController) AddUsersToRoom(ctx *gin.Context) {
+	roomId := ctx.Param("roomId")
+
 	var req struct {
-		RoomID  string   `json:"roomId" validate:"required"`
-		UserIDs []string `json:"userIDs" validate:"required"`
+		UserIDs []string `json:"userIds" validate:"required"`
 	}
 
 	if err := ctx.BindJSON(&req); err != nil {
@@ -55,7 +56,7 @@ func (rc *RoomUserController) AddUsersToRoom(ctx *gin.Context) {
 		return
 	}
 
-	if err := rc.roomUserUsecase.AddUsersToRoom(ctx, req.RoomID, req.UserIDs); err != nil {
+	if err := rc.roomUserUsecase.AddUsersToRoom(ctx, roomId, req.UserIDs); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

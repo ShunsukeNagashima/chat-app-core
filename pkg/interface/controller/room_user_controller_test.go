@@ -125,10 +125,7 @@ func TestRemoveUserFromRoom(t *testing.T) {
 
 func TestAddUsersToRoom(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	mockUsecase := new(mocks.RoomUserUsecase)
 	validator := validator.New()
-
-	uc := NewRoomUserController(mockUsecase, validator)
 
 	testCases := []struct {
 		name         string
@@ -145,13 +142,6 @@ func TestAddUsersToRoom(t *testing.T) {
 			expectedCode: http.StatusCreated,
 		},
 		{
-			name:         "Invalid RoomID",
-			roomId:       "invalid_roomID",
-			userIDs:      []string{"1", "2"},
-			expectedErr:  errors.New("some error"),
-			expectedCode: http.StatusInternalServerError,
-		},
-		{
 			name:         "Invalid UserID",
 			roomId:       "1",
 			userIDs:      []string{"invalid_userID", "2"},
@@ -162,13 +152,15 @@ func TestAddUsersToRoom(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			mockUsecase := new(mocks.RoomUserUsecase)
+
 			mockUsecase.On("AddUsersToRoom", mock.Anything, tc.roomId, tc.userIDs).Return(tc.expectedErr)
 
+			uc := NewRoomUserController(mockUsecase, validator)
+
 			req := struct {
-				RoomID  string   `json:"roomId"`
 				UserIDs []string `json:"userIDs"`
 			}{
-				RoomID:  tc.roomId,
 				UserIDs: tc.userIDs,
 			}
 
@@ -193,24 +185,18 @@ func prepareRequestAndContext(method, url string, params gin.Params, body io.Rea
 }
 
 func checkResponseMessage(t *testing.T, expectedErr error, expectedCode int, response *httptest.ResponseRecorder, expectedMessage string) {
+	assert.Equal(t, expectedCode, response.Code)
+
+	var responseBody map[string]string
+
+	if err := json.Unmarshal(response.Body.Bytes(), &responseBody); err != nil {
+		t.Fatal(err)
+	}
+
 	if expectedErr == nil {
-		assert.Equal(t, expectedCode, response.Code)
-		var result struct {
-			Message string `json:"message"`
-		}
-		if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
-			t.Fatal(err)
-		}
-		assert.Equal(t, expectedMessage, result.Message)
+		assert.Equal(t, expectedMessage, responseBody["result"])
 	} else {
-		assert.Equal(t, expectedCode, response.Code)
-		var result struct {
-			Message string `json:"message"`
-		}
-		if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
-			t.Fatal(err)
-		}
-		assert.Equal(t, expectedErr.Error(), result.Message)
+		assert.Equal(t, expectedErr.Error(), responseBody["error"])
 	}
 }
 
