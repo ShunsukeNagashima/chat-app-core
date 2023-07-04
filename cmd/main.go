@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"log"
+	"net/http"
 	"os"
 	"regexp"
 
@@ -74,7 +76,18 @@ func initializeControllers(ctx context.Context) (*controller.Controllers, error)
 		return nil, err
 	}
 
-	es, err := elasticsearch.NewDefaultClient()
+	es, err := elasticsearch.NewClient(elasticsearch.Config{
+		Addresses: []string{
+			"https://localhost:9200",
+		},
+		Username: "elastic",
+		Password: "password",
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	})
 	if err != nil {
 		return nil, err
 	}
