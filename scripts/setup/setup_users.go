@@ -4,9 +4,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 )
 
-func SetupUsers() (string, error) {
+func SetupUsers() (*model.User, error) {
 	tableName := "Users"
 
 	sess, _ := session.NewSession(&aws.Config{
@@ -37,28 +38,32 @@ func SetupUsers() (string, error) {
 		TableName: aws.String(tableName),
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	// registered on firebase
-	userId := "Ko9BmAGyeBSP0w3WAnf83eg31rU2"
+	testUser := &model.User{
+		UserID:   "Ko9BmAGyeBSP0w3WAnf83eg31rU2",
+		Username: "Sample User",
+		Email:    "sample-user@example.com",
+	}
+
 	// テストデータの投入
 	_, err = svc.PutItem(&dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
 			"userId": {
-				S: aws.String(userId),
+				S: aws.String(testUser.UserID),
 			},
 			"userName": {
-				S: aws.String("Sample User"),
+				S: aws.String(testUser.Username),
 			},
 			"email": {
-				S: aws.String("sample-user@example.com"),
+				S: aws.String(testUser.Email),
 			},
 		},
 		TableName: aws.String(tableName),
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return userId, nil
+	return testUser, nil
 }

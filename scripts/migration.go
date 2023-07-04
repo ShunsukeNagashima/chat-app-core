@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	userId, err := scripts.SetupUsers()
+	user, err := scripts.SetupUsers()
 	if err != nil {
 		log.Panicf("Failed to set up users: %v", err)
 	}
@@ -17,7 +17,7 @@ func main() {
 		log.Panicf("Failed to set up rooms: %v", err)
 	}
 
-	if err := scripts.SetupRoomUsers(roomIDs, userId); err != nil {
+	if err := scripts.SetupRoomUsers(roomIDs, user.UserID); err != nil {
 		log.Panicf("Failed to set up room users: %v", err)
 	}
 
@@ -33,4 +33,7 @@ func main() {
 		log.Panicf("Failed to set up messages: %v", err)
 	}
 
+	if err := scripts.SetUpElasticsearch(user); err != nil {
+		log.Panicf("Failed to set up elasticsearch: %v", err)
+	}
 }
