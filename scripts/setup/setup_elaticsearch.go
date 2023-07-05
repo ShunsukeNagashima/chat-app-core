@@ -14,7 +14,7 @@ import (
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 )
 
-func SetUpElasticsearch(user *model.User) error {
+func SetUpElasticsearch(users []*model.User) error {
 	es, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: []string{
 			"https://localhost:9200",
@@ -70,27 +70,29 @@ func SetUpElasticsearch(user *model.User) error {
 		}
 	}
 
-	userJson, err := json.Marshal(user)
-	if err != nil {
-		return err
-	}
+	for _, user := range users {
+		userJson, err := json.Marshal(user)
+		if err != nil {
+			return err
+		}
 
-	createIndexReq := esapi.IndexRequest{
-		Index:      "users",
-		DocumentID: user.UserID,
-		Body:       bytes.NewReader(userJson),
-	}
+		createIndexReq := esapi.IndexRequest{
+			Index:      "users",
+			DocumentID: user.UserID,
+			Body:       bytes.NewReader(userJson),
+		}
 
-	res, err = createIndexReq.Do(context.Background(), es)
+		res, err = createIndexReq.Do(context.Background(), es)
 
-	if err != nil {
-		return err
-	}
-	if res.IsError() {
-		return fmt.Errorf("cannot create index: %s", res.String())
-	}
+		if err != nil {
+			return err
+		}
+		if res.IsError() {
+			return fmt.Errorf("cannot create index: %s", res.String())
+		}
 
-	defer res.Body.Close()
+		defer res.Body.Close()
+	}
 
 	return nil
 }
