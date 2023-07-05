@@ -78,7 +78,7 @@ func initializeControllers(ctx context.Context) (*controller.Controllers, error)
 
 	es, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: []string{
-			"https://localhost:9200",
+			"https://elasticsearch:9200",
 		},
 		Username: "elastic",
 		Password: "password",
