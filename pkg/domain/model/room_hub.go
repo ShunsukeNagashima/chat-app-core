@@ -3,44 +3,44 @@ package model
 import "sync"
 
 type RoomHub struct {
-	Clients   map[*Client]bool
-	Broadcast chan *Message
+	clients   map[*Client]bool
+	broadcast chan *Message
 	clientMu  sync.Mutex
 }
 
 func NewRoomHub() Hub {
 	return &RoomHub{
-		Clients:   make(map[*Client]bool),
-		Broadcast: make(chan *Message),
+		clients:   make(map[*Client]bool),
+		broadcast: make(chan *Message),
 	}
 }
 
 func (rh *RoomHub) RegisterClient(client *Client) {
 	rh.clientMu.Lock()
 	defer rh.clientMu.Unlock()
-	rh.Clients[client] = true
+	rh.clients[client] = true
 }
 
 func (rh *RoomHub) UnregisterClient(client *Client) {
-	if _, ok := rh.Clients[client]; ok {
-		delete(rh.Clients, client)
+	if _, ok := rh.clients[client]; ok {
+		delete(rh.clients, client)
 		close(client.Send)
 	}
 }
 
 func (rh *RoomHub) BroadcastEvent(event Event) {
-	rh.Broadcast <- event.(*Message)
+	rh.broadcast <- event.(*Message)
 }
 
 func (rh *RoomHub) Run() {
 	for {
-		message := <-rh.Broadcast
-		for client := range rh.Clients {
+		message := <-rh.broadcast
+		for client := range rh.clients {
 			select {
 			case client.Send <- message:
 			default:
 				close(client.Send)
-				delete(rh.Clients, client)
+				delete(rh.clients, client)
 			}
 		}
 	}
