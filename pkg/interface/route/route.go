@@ -23,5 +23,5 @@ func RegisterRoutes(router *gin.Engine, controllers *controller.Controllers) {
 	}
 
 	router.GET("/ws/:roomId", controllers.WSController.HandleRoomConnection)
-	router.GET("/ws/", controllers.WSController.HandleGlobalConnection)
+	router.GET("/ws", controllers.WSController.HandleGlobalConnection)
 }
