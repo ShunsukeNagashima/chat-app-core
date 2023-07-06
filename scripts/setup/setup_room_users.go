@@ -1,16 +1,13 @@
 package scripts
 
 import (
-	"fmt"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/google/uuid"
 )
 
-func SetupRooms() ([]string, error) {
-	tableName := "Rooms"
+func SetupRoomUsers(roomIDs []string, userId string) error {
+	tableName := "RoomUsers"
 
 	sess, _ := session.NewSession(&aws.Config{
 		Region:   aws.String("us-west-2"),
@@ -19,7 +16,7 @@ func SetupRooms() ([]string, error) {
 
 	svc := dynamodb.New(sess)
 
-	// rooms テーブルの作成
+	// likes テーブルの作成
 	_, err := svc.CreateTable(&dynamodb.CreateTableInput{
 		AttributeDefinitions: []*dynamodb.AttributeDefinition{
 			{
@@ -27,7 +24,7 @@ func SetupRooms() ([]string, error) {
 				AttributeType: aws.String("S"),
 			},
 			{
-				AttributeName: aws.String("name"),
+				AttributeName: aws.String("userId"),
 				AttributeType: aws.String("S"),
 			},
 		},
@@ -36,14 +33,22 @@ func SetupRooms() ([]string, error) {
 				AttributeName: aws.String("roomId"),
 				KeyType:       aws.String("HASH"),
 			},
+			{
+				AttributeName: aws.String("userId"),
+				KeyType:       aws.String("RANGE"),
+			},
 		},
 		GlobalSecondaryIndexes: []*dynamodb.GlobalSecondaryIndex{
 			{
-				IndexName: aws.String("NameIndex"),
+				IndexName: aws.String("UserIDIndex"),
 				KeySchema: []*dynamodb.KeySchemaElement{
 					{
-						AttributeName: aws.String("name"),
+						AttributeName: aws.String("userId"),
 						KeyType:       aws.String("HASH"),
+					},
+					{
+						AttributeName: aws.String("roomId"),
+						KeyType:       aws.String("RANGE"),
 					},
 				},
 				Projection: &dynamodb.Projection{
@@ -62,42 +67,26 @@ func SetupRooms() ([]string, error) {
 		TableName: aws.String(tableName),
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var roomIDs []string
 	// テストデータの投入
-	for i := 0; i <= 3; i++ {
-		roomId := uuid.New().String()
-		roomIDs = append(roomIDs, roomId)
-		var roomName string
-		var roomType string
-		if i == 0 {
-			roomName = "sample-private-room"
-			roomType = "private"
-		} else {
-			roomName = fmt.Sprintf("sample-public-room-%d", i)
-			roomType = "public"
-		}
-
+	for _, roomId := range roomIDs {
 		_, err = svc.PutItem(&dynamodb.PutItemInput{
 			Item: map[string]*dynamodb.AttributeValue{
 				"roomId": {
 					S: aws.String(roomId),
 				},
-				"name": {
-					S: aws.String(roomName),
-				},
-				"roomType": {
-					S: aws.String(roomType),
+				"userId": {
+					S: aws.String(userId),
 				},
 			},
 			TableName: aws.String(tableName),
 		})
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return roomIDs, nil
+	return nil
 }

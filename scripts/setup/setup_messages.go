@@ -7,6 +7,8 @@ import (
 )
 
 func SetupMessages() error {
+	tableName := "Messages"
+
 	sess, _ := session.NewSession(&aws.Config{
 		Region:   aws.String("us-west-2"),
 		Endpoint: aws.String("http://localhost:8000"),
@@ -18,7 +20,7 @@ func SetupMessages() error {
 	_, err := svc.CreateTable(&dynamodb.CreateTableInput{
 		AttributeDefinitions: []*dynamodb.AttributeDefinition{
 			{
-				AttributeName: aws.String("roomID"),
+				AttributeName: aws.String("roomId"),
 				AttributeType: aws.String("S"),
 			},
 			{
@@ -28,7 +30,7 @@ func SetupMessages() error {
 		},
 		KeySchema: []*dynamodb.KeySchemaElement{
 			{
-				AttributeName: aws.String("roomID"),
+				AttributeName: aws.String("roomId"),
 				KeyType:       aws.String("HASH"),
 			},
 			{
@@ -40,7 +42,7 @@ func SetupMessages() error {
 			ReadCapacityUnits:  aws.Int64(10),
 			WriteCapacityUnits: aws.Int64(10),
 		},
-		TableName: aws.String("messages"),
+		TableName: aws.String(tableName),
 	})
 	if err != nil {
 		return err
@@ -49,7 +51,7 @@ func SetupMessages() error {
 	// テストデータの投入
 	_, err = svc.PutItem(&dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
-			"messageID": {
+			"messageId": {
 				S: aws.String("sampleMessageID"),
 			},
 			"content": {
@@ -58,14 +60,14 @@ func SetupMessages() error {
 			"createdAt": {
 				S: aws.String("2023-06-01T12:00:00Z"),
 			},
-			"roomID": {
+			"roomId": {
 				S: aws.String("sampleRoomID"),
 			},
 			"senderID": {
 				S: aws.String("sampleSenderID"),
 			},
 		},
-		TableName: aws.String("messages"),
+		TableName: aws.String(tableName),
 	})
 	if err != nil {
 		return err

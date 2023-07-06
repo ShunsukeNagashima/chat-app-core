@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"log"
 
 	"github.com/gorilla/websocket"
@@ -8,14 +9,14 @@ import (
 
 type Client struct {
 	Conn *websocket.Conn
-	Send chan *Message
-	Hub  *Hub
+	Send chan Event
+	Hub  Hub
 }
 
-func NewClient(ws *websocket.Conn, hub *Hub) *Client {
+func NewClient(ws *websocket.Conn, hub Hub) *Client {
 	return &Client{
 		Conn: ws,
-		Send: make(chan *Message),
+		Send: make(chan Event),
 		Hub:  hub,
 	}
 }
@@ -26,8 +27,8 @@ func (c *Client) Read() {
 	}()
 
 	for {
-		var message Message
-		err := c.Conn.ReadJSON(&message)
+		var rawEvent RawEvent
+		err := c.Conn.ReadJSON(&rawEvent)
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("unexpected close error: %v", err)
@@ -35,7 +36,26 @@ func (c *Client) Read() {
 			break
 		}
 
-		c.Hub.Broadcast <- &message
+		switch rawEvent.Type {
+		case MessageSent:
+			var message Message
+			err := json.Unmarshal(rawEvent.Data, &message)
+			if err != nil {
+				log.Printf("Failed to unmarshal message: %v", err)
+				break
+			}
+			c.Hub.BroadcastEvent(&message)
+		case UserJoined:
+			var eventData RoomUserDetails
+			err := json.Unmarshal(rawEvent.Data, &eventData)
+			if err != nil {
+				log.Printf("Failed to unmarshal event data: %v", err)
+				break
+			}
+			c.Hub.BroadcastEvent(&eventData)
+		default:
+			log.Printf("Invalid event type: %s", rawEvent.Type)
+		}
 	}
 }
 
@@ -45,23 +65,46 @@ func (c *Client) Write() {
 	}()
 
 	for {
-		message, ok := <-c.Send
+		eventData, ok := <-c.Send
 		if !ok {
 			c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
 			return
 		}
 
-		c.Conn.WriteJSON(message)
+		var eventType EventType
+		var err error
+		switch dataType := eventData.(type) {
+		case *Message:
+			eventType = MessageSent
+		case *RoomUserDetails:
+			eventType = UserJoined
+		default:
+			log.Printf("Invalid event type: %v", dataType)
+			continue
+		}
+
+		data, err := json.Marshal(eventData)
+		if err != nil {
+			log.Printf("Failed to marshal event: %v", err)
+			return
+		}
+
+		rawEvent := RawEvent{
+			Type: eventType,
+			Data: data,
+		}
+
+		err = c.Conn.WriteJSON(rawEvent)
+		if err != nil {
+			log.Printf("Failed to write event: %v", err)
+			return
+		}
 	}
 }
 
 func (c *Client) disconnect() {
-	select {
-	case c.Hub.Unregister <- c:
-		log.Printf("Unregistered client: %v", c)
-	default:
-		log.Printf("Failed to unregister client: %v", c)
-	}
+	c.Hub.UnregisterClient(c)
+	log.Printf("Unregistered client: %v", c)
 
 	err := c.Conn.Close()
 	if err != nil {

@@ -18,21 +18,21 @@ func SetupReadby() error {
 	_, err := svc.CreateTable(&dynamodb.CreateTableInput{
 		AttributeDefinitions: []*dynamodb.AttributeDefinition{
 			{
-				AttributeName: aws.String("messageID"),
+				AttributeName: aws.String("messageId"),
 				AttributeType: aws.String("S"),
 			},
 			{
-				AttributeName: aws.String("userID"),
+				AttributeName: aws.String("userId"),
 				AttributeType: aws.String("S"),
 			},
 		},
 		KeySchema: []*dynamodb.KeySchemaElement{
 			{
-				AttributeName: aws.String("messageID"),
+				AttributeName: aws.String("messageId"),
 				KeyType:       aws.String("HASH"),
 			},
 			{
-				AttributeName: aws.String("userID"),
+				AttributeName: aws.String("userId"),
 				KeyType:       aws.String("RANGE"),
 			},
 		},
@@ -49,14 +49,14 @@ func SetupReadby() error {
 	// テストデータの投入
 	_, err = svc.PutItem(&dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
-			"messageID": {
+			"messageId": {
 				S: aws.String("sampleMessageID"),
 			},
-			"userID": {
+			"userId": {
 				S: aws.String("sampleUserID"),
 			},
 		},
-		TableName: aws.String("readby"),
+		TableName: aws.String("Readby"),
 	})
 	if err != nil {
 		return err
