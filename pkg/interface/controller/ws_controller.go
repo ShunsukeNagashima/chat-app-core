@@ -16,16 +16,16 @@ var upgrader = websocket.Upgrader{
 }
 
 type WSController struct {
-	HubManager *model.HubManager
+	HubManager *model.RoomHubManager
 }
 
-func NewWSController(hubManager *model.HubManager) *WSController {
+func NewWSController(hubManager *model.RoomHubManager) *WSController {
 	return &WSController{
 		HubManager: hubManager,
 	}
 }
 
-func (wc *WSController) HandleConnection(ctx *gin.Context) {
+func (wc *WSController) HandleRoomConnection(ctx *gin.Context) {
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		log.Printf("Failed to set webscoket upgrade: %+v", err)
@@ -38,10 +38,30 @@ func (wc *WSController) HandleConnection(ctx *gin.Context) {
 		return
 	}
 
-	hub := wc.HubManager.GetHub(roomId)
+	hub, exists := wc.HubManager.GetRoomHub(roomId)
+	if !exists {
+		hub = wc.HubManager.CreateRoomHub(roomId)
+	}
 	client := model.NewClient(conn, hub)
 
-	hub.Register <- client
+	hub.RegisterClient(client)
+
+	go client.Write()
+	go client.Read()
+}
+
+func (wc *WSController) HandleGlobalConnection(ctx *gin.Context) {
+	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		log.Printf("Failed to set webscoket upgrade: %+v", err)
+		return
+	}
+
+	globalHub := model.GetGlobalHubInstance()
+
+	client := model.NewClient(conn, globalHub)
+
+	globalHub.RegisterClient(client)
 
 	go client.Write()
 	go client.Read()

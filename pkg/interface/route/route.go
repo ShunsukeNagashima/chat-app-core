@@ -22,5 +22,6 @@ func RegisterRoutes(router *gin.Engine, controllers *controller.Controllers) {
 		apiGroup.POST("/rooms/:roomId/users", controllers.RoomUserController.AddUsersToRoom)
 	}
 
-	router.GET("/ws/:roomId", controllers.WSController.HandleConnection)
+	router.GET("/ws/:roomId", controllers.WSController.HandleRoomConnection)
+	router.GET("/ws/", controllers.WSController.HandleGlobalConnection)
 }

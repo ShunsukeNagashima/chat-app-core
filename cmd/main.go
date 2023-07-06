@@ -51,7 +51,7 @@ func run(ctx context.Context) error {
 }
 
 func initializeControllers(ctx context.Context) (*controller.Controllers, error) {
-	hm := model.NewHubManager()
+	hm := model.NewRoomHubManager()
 
 	sess, err := session.NewSession(&aws.Config{
 		Region:   aws.String("us-west-2"),
