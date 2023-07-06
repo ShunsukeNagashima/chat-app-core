@@ -37,7 +37,7 @@ func (c *Client) Read() {
 		}
 
 		switch rawEvent.Type {
-		case "message":
+		case MessageSent:
 			var message Message
 			err := json.Unmarshal(rawEvent.Data, &message)
 			if err != nil {
@@ -45,14 +45,14 @@ func (c *Client) Read() {
 				break
 			}
 			c.Hub.BroadcastEvent(&message)
-		case "roomEvent":
-			var roomEvent RoomEvent
-			err := json.Unmarshal(rawEvent.Data, &roomEvent)
+		case UserJoined:
+			var eventData RoomUserDetails
+			err := json.Unmarshal(rawEvent.Data, &eventData)
 			if err != nil {
-				log.Printf("Failed to unmarshal roomEvent: %v", err)
+				log.Printf("Failed to unmarshal event data: %v", err)
 				break
 			}
-			c.Hub.BroadcastEvent(&roomEvent)
+			c.Hub.BroadcastEvent(&eventData)
 		default:
 			log.Printf("Invalid event type: %s", rawEvent.Type)
 		}
@@ -65,25 +65,25 @@ func (c *Client) Write() {
 	}()
 
 	for {
-		event, ok := <-c.Send
+		eventData, ok := <-c.Send
 		if !ok {
 			c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
 			return
 		}
 
-		var eventType string
+		var eventType EventType
 		var err error
-		switch e := event.(type) {
+		switch dataType := eventData.(type) {
 		case *Message:
-			eventType = "message"
-		case *RoomEvent:
-			eventType = "roomEvent"
+			eventType = MessageSent
+		case *RoomUserDetails:
+			eventType = UserJoined
 		default:
-			log.Printf("Invalid event type: %v", e)
+			log.Printf("Invalid event type: %v", dataType)
 			continue
 		}
 
-		data, err := json.Marshal(event)
+		data, err := json.Marshal(eventData)
 		if err != nil {
 			log.Printf("Failed to marshal event: %v", err)
 			return

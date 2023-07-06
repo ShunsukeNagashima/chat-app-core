@@ -42,17 +42,17 @@ func (gh *GlobalHub) UnregisterClient(client *Client) {
 }
 
 func (gh *GlobalHub) BroadcastEvent(event Event) {
-	gh.broadcast <- event.(*RoomEvent)
+	gh.broadcast <- event.(*RoomUserDetails)
 }
 
 func (gh *GlobalHub) Run() {
 	for {
 		event := <-gh.broadcast
 		for client := range gh.clients {
-			roomEvent, ok := event.(*RoomEvent)
+			eventData, ok := event.(*RoomUserDetails)
 			if ok {
 				select {
-				case client.Send <- roomEvent:
+				case client.Send <- eventData:
 				default:
 					close(client.Send)
 					delete(gh.clients, client)
