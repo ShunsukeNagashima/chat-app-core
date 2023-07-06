@@ -19,6 +19,6 @@ const (
 )
 
 type RoomUserDetails struct {
-	Room   Room   `json:"room"`
+	RoomID string `json:"roomId"`
 	UserID string `json:"userId"`
 }
