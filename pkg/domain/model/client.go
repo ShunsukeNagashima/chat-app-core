@@ -67,7 +67,9 @@ func (c *Client) Write() {
 	for {
 		eventData, ok := <-c.Send
 		if !ok {
-			c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+			if err := c.Conn.WriteMessage(websocket.CloseMessage, []byte{}); err != nil {
+				log.Printf("Failed to write close message: %v", err)
+			}
 			return
 		}
 

@@ -109,7 +109,9 @@ func TestCreateRoom(t *testing.T) {
 			if tc.expectedCode == http.StatusCreated {
 				mockUsecase.AssertExpectations(t)
 				var responseBody map[string]interface{}
-				json.Unmarshal(response.Body.Bytes(), &responseBody)
+				if err := json.Unmarshal(response.Body.Bytes(), &responseBody); err != nil {
+					t.Fatal(err)
+				}
 
 				result, _ := responseBody["result"].(map[string]interface{})
 				assert.Equal(t, tc.reqBody["name"], result["name"])
@@ -177,12 +179,13 @@ func TestGetRoomByID(t *testing.T) {
 					Result model.Room `json:"result"`
 				}
 
-				json.Unmarshal(response.Body.Bytes(), &result)
+				if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
+					t.Fatal(err)
+				}
 				assert.Equal(t, mockRoom, result.Result)
 			}
 		})
 	}
-
 }
 
 func TestGetAllPublicRooms(t *testing.T) {
@@ -245,13 +248,14 @@ func TestGetAllPublicRooms(t *testing.T) {
 				var result struct {
 					Result []*model.Room `json:"result"`
 				}
-				json.Unmarshal(response.Body.Bytes(), &result)
+				if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
+					t.Fatal(err)
+				}
 
 				assert.Equal(t, mockRooms, result.Result)
 			}
 		})
 	}
-
 }
 
 func TestDeleteRoom(t *testing.T) {
@@ -303,13 +307,14 @@ func TestDeleteRoom(t *testing.T) {
 					Result string `json:"result"`
 				}
 
-				json.Unmarshal(response.Body.Bytes(), &result)
+				if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
+					t.Fatal(err)
+				}
 
 				assert.Equal(t, "room deleted successfully", result.Result)
 			}
 		})
 	}
-
 }
 
 func TestUpdateRoom(t *testing.T) {
@@ -381,18 +386,21 @@ func TestUpdateRoom(t *testing.T) {
 				var result struct {
 					Result string `json:"result"`
 				}
-				json.Unmarshal(response.Body.Bytes(), &result)
+				if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
+					t.Fatal(err)
+				}
 
 				assert.Equal(t, "room updated successfully", result.Result)
 			}
 		})
 	}
-
 }
 
 func newTestValidator() *validator.Validate {
 	v := validator.New()
-	v.RegisterValidation("alnumdash", isAlnumOrDash)
+	if err := v.RegisterValidation("alnumdash", isAlnumOrDash); err != nil {
+		panic(err)
+	}
 	return v
 }
 
