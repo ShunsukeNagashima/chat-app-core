@@ -42,8 +42,8 @@ func (_m *MessageRepository) Delete(ctx context.Context, messageId string) error
 	return r0
 }
 
-// GetAllMessagesByRoomID provides a mock function with given fields: ctx, roomId
-func (_m *MessageRepository) GetAllMessagesByRoomID(ctx context.Context, roomId string) ([]*model.Message, error) {
+// GetAllByRoomID provides a mock function with given fields: ctx, roomId
+func (_m *MessageRepository) GetAllByRoomID(ctx context.Context, roomId string) ([]*model.Message, error) {
 	ret := _m.Called(ctx, roomId)
 
 	var r0 []*model.Message
@@ -61,6 +61,32 @@ func (_m *MessageRepository) GetAllMessagesByRoomID(ctx context.Context, roomId 
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, roomId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetByID provides a mock function with given fields: ctx, messageId
+func (_m *MessageRepository) GetByID(ctx context.Context, messageId string) (*model.Message, error) {
+	ret := _m.Called(ctx, messageId)
+
+	var r0 *model.Message
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.Message, error)); ok {
+		return rf(ctx, messageId)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.Message); ok {
+		r0 = rf(ctx, messageId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Message)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, messageId)
 	} else {
 		r1 = ret.Error(1)
 	}

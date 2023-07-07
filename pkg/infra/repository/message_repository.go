@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/shunsukenagashima/chat-api/pkg/apperror"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/repository"
 )
@@ -29,7 +30,7 @@ func NewMessageRepository(db *dynamodb.DynamoDB, er repository.ElasticsearchRepo
 	}
 }
 
-func (mr *MessageRepositoryImpl) GetAllMessagesByRoomID(ctx context.Context, roomId string) ([]*model.Message, error) {
+func (mr *MessageRepositoryImpl) GetAllByRoomID(ctx context.Context, roomId string) ([]*model.Message, error) {
 	input := &dynamodb.QueryInput{
 		TableName: aws.String(mr.dbName),
 		IndexName: aws.String("RoomIdIndex"),
@@ -56,6 +57,33 @@ func (mr *MessageRepositoryImpl) GetAllMessagesByRoomID(ctx context.Context, roo
 	}
 
 	return messages, nil
+}
+
+func (mr *MessageRepositoryImpl) GetByID(ctx context.Context, messageId string) (*model.Message, error) {
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(mr.dbName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"messageId": {
+				S: aws.String(messageId),
+			},
+		},
+	}
+
+	result, err := mr.db.GetItem(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(result.Item) == 0 {
+		return nil, apperror.NewNotFoundErr("Message", "Message'ID: "+messageId)
+	}
+
+	var message *model.Message
+	if err := dynamodbattribute.UnmarshalMap(result.Item, &message); err != nil {
+		return nil, err
+	}
+
+	return message, nil
 }
 
 func (mr *MessageRepositoryImpl) Create(ctx context.Context, message *model.Message) error {
