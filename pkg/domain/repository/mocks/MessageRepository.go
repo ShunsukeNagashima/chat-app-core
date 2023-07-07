@@ -68,13 +68,13 @@ func (_m *MessageRepository) GetAllMessagesByRoomID(ctx context.Context, roomId 
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: ctx, message
-func (_m *MessageRepository) Update(ctx context.Context, message *model.Message) error {
-	ret := _m.Called(ctx, message)
+// Update provides a mock function with given fields: ctx, messageId, newContent
+func (_m *MessageRepository) Update(ctx context.Context, messageId string, newContent string) error {
+	ret := _m.Called(ctx, messageId, newContent)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *model.Message) error); ok {
-		r0 = rf(ctx, message)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, messageId, newContent)
 	} else {
 		r0 = ret.Error(0)
 	}

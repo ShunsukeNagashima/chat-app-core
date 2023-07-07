@@ -10,6 +10,6 @@ import (
 type MessageRepository interface {
 	GetAllMessagesByRoomID(ctx context.Context, roomId string) ([]*model.Message, error)
 	Create(ctx context.Context, message *model.Message) error
-	Update(ctx context.Context, message *model.Message) error
+	Update(ctx context.Context, messageId, newContent string) error
 	Delete(ctx context.Context, messageId string) error
 }

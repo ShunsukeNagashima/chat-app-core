@@ -6,34 +6,32 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/repository"
 )
 
 type MessageRepositoryImpl struct {
 	db     *dynamodb.DynamoDB
-	es     *elasticsearch.Client
+	er     repository.ElasticsearchRepository
 	dbName string
 }
 
-func NewMessageRepository(db *dynamodb.DynamoDB, es *elasticsearch.Client) repository.MessageRepository {
+func NewMessageRepository(db *dynamodb.DynamoDB, er repository.ElasticsearchRepository) repository.MessageRepository {
 	return &MessageRepositoryImpl{
 		db,
-		es,
+		er,
 		"Messages",
 	}
 }
 
-func (r *MessageRepositoryImpl) GetAllMessagesByRoomID(ctx context.Context, roomId string) ([]*model.Message, error) {
+func (mr *MessageRepositoryImpl) GetAllMessagesByRoomID(ctx context.Context, roomId string) ([]*model.Message, error) {
 	input := &dynamodb.QueryInput{
-		TableName: aws.String(r.dbName),
+		TableName: aws.String(mr.dbName),
 		IndexName: aws.String("RoomIdIndex"),
 		KeyConditions: map[string]*dynamodb.Condition{
 			"roomId": {
@@ -47,7 +45,7 @@ func (r *MessageRepositoryImpl) GetAllMessagesByRoomID(ctx context.Context, room
 		},
 	}
 
-	result, err := r.db.Query(input)
+	result, err := mr.db.Query(input)
 	if err != nil {
 		return nil, err
 	}
@@ -60,18 +58,18 @@ func (r *MessageRepositoryImpl) GetAllMessagesByRoomID(ctx context.Context, room
 	return messages, nil
 }
 
-func (r *MessageRepositoryImpl) Create(ctx context.Context, message *model.Message) error {
+func (mr *MessageRepositoryImpl) Create(ctx context.Context, message *model.Message) error {
 	item, err := dynamodbattribute.MarshalMap(message)
 	if err != nil {
 		return err
 	}
 
 	input := &dynamodb.PutItemInput{
-		TableName: aws.String(r.dbName),
+		TableName: aws.String(mr.dbName),
 		Item:      item,
 	}
 
-	_, err = r.db.PutItem(input)
+	_, err = mr.db.PutItem(input)
 	if err != nil {
 		return err
 	}
@@ -81,83 +79,45 @@ func (r *MessageRepositoryImpl) Create(ctx context.Context, message *model.Messa
 		return err
 	}
 
-	req := esapi.IndexRequest{
-		Index:      "messages",
-		DocumentID: message.MessageID,
-		Body:       bytes.NewReader(messageJson),
-		Refresh:    "true",
-	}
-
-	retryCount := 3
-	var lastErr error
-	for i := 0; i < retryCount; i++ {
-		res, err := req.Do(ctx, r.es)
-		if err != nil {
-			log.Printf("Error getting response: %s", err)
-			lastErr = fmt.Errorf("Error getting response: %s", err)
-			continue
-		}
-
-		defer res.Body.Close()
-
-		if res.StatusCode != http.StatusCreated {
-			log.Printf("Unexpected status code returned %d", res.StatusCode)
-			lastErr = fmt.Errorf("unexpected status code: %d", res.StatusCode)
-			continue
-		}
-
-		lastErr = nil
-		break
-	}
-
-	if lastErr != nil {
-		return fmt.Errorf("failed to create index for message: %s", lastErr)
+	if err := mr.er.Create(ctx, "messages", message.MessageID, bytes.NewReader(messageJson)); err != nil {
+		log.Printf(err.Error())
 	}
 
 	return nil
 }
 
-func (r *MessageRepositoryImpl) Update(ctx context.Context, message *model.Message) error {
-	item, err := dynamodbattribute.MarshalMap(message)
+func (mr *MessageRepositoryImpl) Update(ctx context.Context, messageId, newContent string) error {
+	input := &dynamodb.UpdateItemInput{
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":c": {
+				S: aws.String(newContent),
+			},
+		},
+		TableName: aws.String(mr.dbName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"messageId": {
+				S: aws.String(messageId),
+			},
+		},
+		ReturnValues:     aws.String("UPDATED_NEW"),
+		UpdateExpression: aws.String("set content = :c"),
+	}
+
+	_, err := mr.db.UpdateItem(input)
 	if err != nil {
 		return err
 	}
 
-	input := &dynamodb.PutItemInput{
-		TableName: aws.String(r.dbName),
-		Item:      item,
+	if err := mr.er.Update(ctx, "messages", messageId, strings.NewReader(fmt.Sprintf(`{"doc": {"content": "%s"}}`, newContent))); err != nil {
+		log.Printf(err.Error())
 	}
-
-	_, err = r.db.PutItem(input)
-	if err != nil {
-		return err
-	}
-
-	messageJson, err := json.Marshal(message)
-	if err != nil {
-		return err
-	}
-
-	req := esapi.UpdateRequest{
-		Index:      "messages",
-		DocumentID: message.MessageID,
-		Body:       bytes.NewReader(messageJson),
-		Refresh:    "true",
-	}
-
-	res, err := req.Do(ctx, r.es)
-	if err != nil {
-		return err
-	}
-
-	defer res.Body.Close()
 
 	return nil
 }
 
-func (r *MessageRepositoryImpl) Delete(ctx context.Context, messageId string) error {
+func (mr *MessageRepositoryImpl) Delete(ctx context.Context, messageId string) error {
 	input := &dynamodb.DeleteItemInput{
-		TableName: aws.String(r.dbName),
+		TableName: aws.String(mr.dbName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"messageId": {
 				S: aws.String(messageId),
@@ -165,23 +125,14 @@ func (r *MessageRepositoryImpl) Delete(ctx context.Context, messageId string) er
 		},
 	}
 
-	_, err := r.db.DeleteItem(input)
+	_, err := mr.db.DeleteItem(input)
 	if err != nil {
 		return err
 	}
 
-	req := esapi.DeleteRequest{
-		Index:      "messages",
-		DocumentID: messageId,
-		Refresh:    "true",
+	if err := mr.er.Delete(ctx, "messages", messageId); err != nil {
+		log.Printf(err.Error())
 	}
-
-	res, err := req.Do(ctx, r.es)
-	if err != nil {
-		return err
-	}
-
-	defer res.Body.Close()
 
 	return nil
 }
