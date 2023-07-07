@@ -8,7 +8,7 @@ import (
 
 //go:generate mockery --name=MessageRepository --output=mocks
 type MessageRepository interface {
-	GetAllByRoomID(ctx context.Context, roomId string) ([]*model.Message, error)
+	GetMessagesByRoomID(ctx context.Context, roomId, lastEvaluatedKey string, limit int) ([]*model.Message, string, error)
 	GetByID(ctx context.Context, messageId string) (*model.Message, error)
 	Create(ctx context.Context, message *model.Message) error
 	Update(ctx context.Context, messageId, newContent string) error

@@ -30,10 +30,16 @@ func NewMessageRepository(db *dynamodb.DynamoDB, er repository.ElasticsearchRepo
 	}
 }
 
-func (mr *MessageRepositoryImpl) GetAllByRoomID(ctx context.Context, roomId string) ([]*model.Message, error) {
+func (mr *MessageRepositoryImpl) GetMessagesByRoomID(ctx context.Context, roomId, lastEvaluatedKey string, limit int) ([]*model.Message, string, error) {
 	input := &dynamodb.QueryInput{
 		TableName: aws.String(mr.dbName),
 		IndexName: aws.String("RoomIdIndex"),
+		Limit:     aws.Int64(int64(limit)),
+		ExclusiveStartKey: map[string]*dynamodb.AttributeValue{
+			"messageId": {
+				S: aws.String(lastEvaluatedKey),
+			},
+		},
 		KeyConditions: map[string]*dynamodb.Condition{
 			"roomId": {
 				ComparisonOperator: aws.String("EQ"),
@@ -48,15 +54,20 @@ func (mr *MessageRepositoryImpl) GetAllByRoomID(ctx context.Context, roomId stri
 
 	result, err := mr.db.Query(input)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	var messages []*model.Message
 	if err := dynamodbattribute.UnmarshalListOfMaps(result.Items, &messages); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return messages, nil
+	var nextKey string
+	if result.LastEvaluatedKey != nil {
+		nextKey = *result.LastEvaluatedKey["messageId"].S
+	}
+
+	return messages, nextKey, nil
 }
 
 func (mr *MessageRepositoryImpl) GetByID(ctx context.Context, messageId string) (*model.Message, error) {
