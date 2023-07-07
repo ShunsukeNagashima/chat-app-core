@@ -1,4 +1,4 @@
-.PHONY: up down test logs migrate
+.PHONY: up down test logs migrate lint
 
 up:
 		docker compose up -d
@@ -14,3 +14,6 @@ logs: ## Tail docker compose logs
 
 migrate:
 		go run ./scripts/migration.go
+
+lint:
+		golangci-lint run --config=./.golangci.yml
