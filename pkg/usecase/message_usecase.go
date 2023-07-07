@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/shunsukenagashima/chat-api/pkg/apperror"
+	"github.com/shunsukenagashima/chat-api/pkg/clock"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/repository"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/usecase"
@@ -20,11 +22,16 @@ func NewMessageUsecase(messageRepo repository.MessageRepository) usecase.Message
 	}
 }
 
-func (mu *MessageUsecaseImpl) GetAllMessagesByRoomID(ctx context.Context, roomId string) ([]*model.Message, error) {
-	return mu.messageRepo.GetAllByRoomID(ctx, roomId)
+func (mu *MessageUsecaseImpl) GetMessagesByRoomID(ctx context.Context, roomId, lastEvaluatedKey string, limit int) ([]*model.Message, string, error) {
+	return mu.messageRepo.GetMessagesByRoomID(ctx, roomId, lastEvaluatedKey, limit)
 }
 
 func (mu *MessageUsecaseImpl) CreateMessage(ctx context.Context, message *model.Message) error {
+	clock := clock.RealClocker{}
+
+	message.RoomID = uuid.New().String()
+	message.CreatedAt = clock.Now()
+
 	return mu.messageRepo.Create(ctx, message)
 }
 
