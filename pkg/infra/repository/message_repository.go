@@ -32,9 +32,9 @@ func NewMessageRepository(db *dynamodb.DynamoDB, er repository.ElasticsearchRepo
 
 func (mr *MessageRepositoryImpl) GetMessagesByRoomID(ctx context.Context, roomId, lastEvaluatedKey string, limit int) ([]*model.Message, string, error) {
 	input := &dynamodb.QueryInput{
-		TableName: aws.String(mr.dbName),
-		IndexName: aws.String("RoomIdIndex"),
-		Limit:     aws.Int64(int64(limit)),
+		TableName:        aws.String(mr.dbName),
+		Limit:            aws.Int64(int64(limit)),
+		ScanIndexForward: aws.Bool(false),
 		ExclusiveStartKey: map[string]*dynamodb.AttributeValue{
 			"messageId": {
 				S: aws.String(lastEvaluatedKey),
