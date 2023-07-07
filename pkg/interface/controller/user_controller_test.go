@@ -71,11 +71,15 @@ func TestGetUserByID(t *testing.T) {
 				assert.Equal(t, http.StatusOK, response.Code)
 
 				var responseBody map[string]interface{}
-				json.Unmarshal(response.Body.Bytes(), &responseBody)
+				if err := json.Unmarshal(response.Body.Bytes(), &responseBody); err != nil {
+					t.Fatal(err)
+				}
 
 				var resultUser model.User
 				userBytes, _ := json.Marshal(responseBody["result"])
-				json.Unmarshal(userBytes, &resultUser)
+				if err := json.Unmarshal(userBytes, &resultUser); err != nil {
+					t.Fatal(err)
+				}
 
 				assert.Equal(t, *mockUser, resultUser)
 				mockUsecase.AssertExpectations(t)
@@ -156,7 +160,9 @@ func TestCreateUser(t *testing.T) {
 			if tc.expectedCode == http.StatusOK {
 				mockUsecase.AssertExpectations(t)
 				var responseBody map[string]interface{}
-				json.Unmarshal(response.Body.Bytes(), &responseBody)
+				if err := json.Unmarshal(response.Body.Bytes(), &responseBody); err != nil {
+					t.Fatal(err)
+				}
 
 				result, _ := responseBody["result"].(map[string]interface{})
 

@@ -132,7 +132,6 @@ func TestAddUsersToRoom(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-
 			for i, userId := range tc.userIDs {
 				if userId == "invalid_user_id" {
 					mockUserRepo.On("GetByID", mock.Anything, userId).Return(nil, errors.New("user not found"))

@@ -104,7 +104,9 @@ func initializeControllers(ctx context.Context) (*controller.Controllers, error)
 
 	v := validator.New()
 
-	v.RegisterValidation("alnumdash", isAlnumOrDash)
+	if err := v.RegisterValidation("alnumdash", isAlnumOrDash); err != nil {
+		return nil, err
+	}
 
 	controllers := &controller.Controllers{
 		HelloController:    controller.NewHelloController(),
