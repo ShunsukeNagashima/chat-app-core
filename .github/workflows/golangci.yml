@@ -4,6 +4,10 @@ on:
     paths:
       - '**.go'
       - .github/workflows/golangci.yml
+permissions:
+  checks: write
+  contents: read
+  pull-requests: read
 jobs:
   golangci-lint:
     runs-on: ubuntu-latest
