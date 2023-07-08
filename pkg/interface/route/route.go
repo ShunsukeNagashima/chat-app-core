@@ -20,6 +20,10 @@ func RegisterRoutes(router *gin.Engine, controllers *controller.Controllers) {
 		apiGroup.GET("/users/search", controllers.UserController.SearchUsers)
 		apiGroup.DELETE("/rooms/:roomId/users/:userId", controllers.RoomUserController.RemoveUserFromRoom)
 		apiGroup.POST("/rooms/:roomId/users", controllers.RoomUserController.AddUsersToRoom)
+		apiGroup.GET("/messages/:roomId", controllers.MessageController.GetMessagesByRoomID)
+		apiGroup.POST("/messages/:roomId", controllers.MessageController.CreateMessage)
+		apiGroup.PUT("/messages/:messageId", controllers.MessageController.UpdateMessage)
+		apiGroup.DELETE("/messages/:messageId", controllers.MessageController.DeleteMessage)
 	}
 
 	router.GET("/ws/:roomId", controllers.WSController.HandleRoomConnection)

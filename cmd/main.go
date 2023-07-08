@@ -94,13 +94,16 @@ func initializeControllers(ctx context.Context) (*controller.Controllers, error)
 
 	fa := auth.NewFirebaseAuth(client)
 
+	er := repository.NewElasticsearchRepository(es)
 	rr := repository.NewRoomRepository(db)
 	rur := repository.NewRoomUserRepository(db)
 	ur := repository.NewUserRepository(db, es)
+	mr := repository.NewMessageRepository(db, er)
 
 	ru := usecase.NewRoomUsecase(rr, ur)
 	ruu := usecase.NewRoomUserUsecase(rur, ur, rr)
 	uu := usecase.NewUserUsecase(ur, fa)
+	mu := usecase.NewMessageUsecase(mr)
 
 	v := validator.New()
 
@@ -114,6 +117,7 @@ func initializeControllers(ctx context.Context) (*controller.Controllers, error)
 		RoomController:     controller.NewRoomController(ru, v),
 		RoomUserController: controller.NewRoomUserController(ruu, v),
 		UserController:     controller.NewUserController(uu, v),
+		MessageController:  controller.NewMessageController(mu, v),
 	}
 
 	return controllers, nil

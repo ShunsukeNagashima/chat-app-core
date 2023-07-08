@@ -6,4 +6,5 @@ type Controllers struct {
 	WSController       *WSController
 	UserController     *UserController
 	RoomUserController *RoomUserController
+	MessageController  *MessageController
 }
