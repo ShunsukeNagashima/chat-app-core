@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/shunsukenagashima/chat-api/pkg/apperror"
 	"github.com/shunsukenagashima/chat-api/pkg/clock"
@@ -15,32 +14,32 @@ import (
 
 func TestGetAllMessagesByRoomID(t *testing.T) {
 	mockMessageRepo := new(mocks.MessageRepository)
-	clock := clock.NewProgressingClocker(time.Now(), time.Minute)
+	clock := clock.FixedClocker{}
 	mockMessages := []*model.Message{
 		{
 			MessageID: "1",
 			RoomID:    "1",
-			SenderID:  "1",
+			UserID:    "1",
 			Content:   "Hello",
 			CreatedAt: clock.Now(),
 		},
 		{
 			MessageID: "2",
 			RoomID:    "1",
-			SenderID:  "1",
+			UserID:    "1",
 			Content:   "World",
 			CreatedAt: clock.Now(),
 		},
 		{
 			MessageID: "3",
 			RoomID:    "1",
-			SenderID:  "2",
+			UserID:    "2",
 			Content:   "Hello World",
 			CreatedAt: clock.Now(),
 		},
 	}
 
-	mockMessageRepo.On("GetAllByRoomID", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mockMessages, "4", nil)
+	mockMessageRepo.On("GetMessagesByRoomID", mock.Anything, mockMessages[0].RoomID, mock.Anything, mock.Anything).Return(mockMessages, "4", nil)
 	messageUsecase := NewMessageUsecase(mockMessageRepo)
 
 	messages, _, err := messageUsecase.GetMessagesByRoomID(context.Background(), "1", "0", 10)
@@ -51,7 +50,7 @@ func TestGetAllMessagesByRoomID(t *testing.T) {
 	for i, message := range messages {
 		assert.Equal(t, mockMessages[i].MessageID, message.MessageID)
 		assert.Equal(t, mockMessages[i].RoomID, message.RoomID)
-		assert.Equal(t, mockMessages[i].SenderID, message.SenderID)
+		assert.Equal(t, mockMessages[i].UserID, message.UserID)
 		assert.Equal(t, mockMessages[i].Content, message.Content)
 		assert.Equal(t, mockMessages[i].CreatedAt, message.CreatedAt)
 	}
@@ -64,7 +63,7 @@ func TestCreateMessage(t *testing.T) {
 	mockMessage := &model.Message{
 		MessageID: "1",
 		RoomID:    "1",
-		SenderID:  "1",
+		UserID:    "1",
 		Content:   "Hello",
 		CreatedAt: clock.Now(),
 	}
@@ -83,7 +82,7 @@ func TestUpdateMessage(t *testing.T) {
 	mockMessage := &model.Message{
 		MessageID: "1",
 		RoomID:    "1",
-		SenderID:  "1",
+		UserID:    "1",
 		Content:   "Hello",
 		CreatedAt: clock.Now(),
 	}
@@ -138,7 +137,7 @@ func TestDeleteMessage(t *testing.T) {
 	mockMessage := &model.Message{
 		MessageID: "1",
 		RoomID:    "1",
-		SenderID:  "1",
+		UserID:    "1",
 		Content:   "Hello",
 		CreatedAt: clock.Now(),
 	}
