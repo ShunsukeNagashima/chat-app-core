@@ -2,10 +2,8 @@ package usecase
 
 import (
 	"context"
-	"errors"
 
 	"github.com/google/uuid"
-	"github.com/shunsukenagashima/chat-api/pkg/apperror"
 	"github.com/shunsukenagashima/chat-api/pkg/clock"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/repository"
@@ -38,10 +36,7 @@ func (mu *MessageUsecaseImpl) CreateMessage(ctx context.Context, message *model.
 func (mu *MessageUsecaseImpl) UpdateMessage(ctx context.Context, messageId, newContent string) error {
 	_, err := mu.messageRepo.GetByID(ctx, messageId)
 	if err != nil {
-		var notFoundErr *apperror.NotFoundErr
-		if !errors.As(err, &notFoundErr) {
-			return err
-		}
+		return err
 	}
 
 	return mu.messageRepo.Update(ctx, messageId, newContent)
@@ -50,10 +45,7 @@ func (mu *MessageUsecaseImpl) UpdateMessage(ctx context.Context, messageId, newC
 func (mu *MessageUsecaseImpl) DeleteMessage(ctx context.Context, messageId string) error {
 	_, err := mu.messageRepo.GetByID(ctx, messageId)
 	if err != nil {
-		var notFoundErr *apperror.NotFoundErr
-		if !errors.As(err, &notFoundErr) {
-			return err
-		}
+		return err
 	}
 
 	return mu.messageRepo.Delete(ctx, messageId)
