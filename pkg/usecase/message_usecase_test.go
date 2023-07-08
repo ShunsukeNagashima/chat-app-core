@@ -59,13 +59,10 @@ func TestGetAllMessagesByRoomID(t *testing.T) {
 
 func TestCreateMessage(t *testing.T) {
 	mockMessageRepo := new(mocks.MessageRepository)
-	clock := clock.FixedClocker{}
 	mockMessage := &model.Message{
-		MessageID: "1",
-		RoomID:    "1",
-		UserID:    "1",
-		Content:   "Hello",
-		CreatedAt: clock.Now(),
+		RoomID:  "1",
+		UserID:  "1",
+		Content: "Hello",
 	}
 
 	mockMessageRepo.On("Create", mock.Anything, mockMessage).Return(nil)
