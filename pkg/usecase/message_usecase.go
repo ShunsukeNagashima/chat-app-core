@@ -27,7 +27,7 @@ func (mu *MessageUsecaseImpl) GetMessagesByRoomID(ctx context.Context, roomId, l
 func (mu *MessageUsecaseImpl) CreateMessage(ctx context.Context, message *model.Message) error {
 	clock := clock.RealClocker{}
 
-	message.RoomID = uuid.New().String()
+	message.MessageID = uuid.New().String()
 	message.CreatedAt = clock.Now()
 
 	return mu.messageRepo.Create(ctx, message)
