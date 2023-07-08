@@ -42,30 +42,37 @@ func (_m *MessageUsecase) DeleteMessage(ctx context.Context, messageId string) e
 	return r0
 }
 
-// GetAllMessagesByRoomID provides a mock function with given fields: ctx, roomId
-func (_m *MessageUsecase) GetAllMessagesByRoomID(ctx context.Context, roomId string) ([]*model.Message, error) {
-	ret := _m.Called(ctx, roomId)
+// GetMessagesByRoomID provides a mock function with given fields: ctx, roomId, lastEvaluatedKey, limit
+func (_m *MessageUsecase) GetMessagesByRoomID(ctx context.Context, roomId string, lastEvaluatedKey string, limit int) ([]*model.Message, string, error) {
+	ret := _m.Called(ctx, roomId, lastEvaluatedKey, limit)
 
 	var r0 []*model.Message
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]*model.Message, error)); ok {
-		return rf(ctx, roomId)
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, int) ([]*model.Message, string, error)); ok {
+		return rf(ctx, roomId, lastEvaluatedKey, limit)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []*model.Message); ok {
-		r0 = rf(ctx, roomId)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, int) []*model.Message); ok {
+		r0 = rf(ctx, roomId, lastEvaluatedKey, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Message)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, roomId)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, int) string); ok {
+		r1 = rf(ctx, roomId, lastEvaluatedKey, limit)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(string)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, string, string, int) error); ok {
+		r2 = rf(ctx, roomId, lastEvaluatedKey, limit)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // UpdateMessage provides a mock function with given fields: ctx, messageId, newContent
