@@ -70,27 +70,32 @@ func (mr *MessageRepositoryImpl) GetMessagesByRoomID(ctx context.Context, roomId
 	return messages, nextKey, nil
 }
 
-func (mr *MessageRepositoryImpl) GetByID(ctx context.Context, messageId string) (*model.Message, error) {
-	input := &dynamodb.GetItemInput{
-		TableName: aws.String(mr.dbName),
-		Key: map[string]*dynamodb.AttributeValue{
-			"messageId": {
+func (mr *MessageRepositoryImpl) GetByID(ctx context.Context, roomId, messageId string) (*model.Message, error) {
+	input := &dynamodb.QueryInput{
+		TableName:              aws.String(mr.dbName),
+		IndexName:              aws.String("MessageIdIndex"),
+		KeyConditionExpression: aws.String("roomId = :r and messageId = :m"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":r": {
+				S: aws.String(roomId),
+			},
+			":m": {
 				S: aws.String(messageId),
 			},
 		},
 	}
 
-	result, err := mr.db.GetItem(input)
+	result, err := mr.db.Query(input)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(result.Item) == 0 {
+	if len(result.Items) == 0 {
 		return nil, apperror.NewNotFoundErr("Message", "Message'ID: "+messageId)
 	}
 
 	var message *model.Message
-	if err := dynamodbattribute.UnmarshalMap(result.Item, &message); err != nil {
+	if err := dynamodbattribute.UnmarshalMap(result.Items[0], &message); err != nil {
 		return nil, err
 	}
 
@@ -125,24 +130,39 @@ func (mr *MessageRepositoryImpl) Create(ctx context.Context, message *model.Mess
 	return nil
 }
 
-func (mr *MessageRepositoryImpl) Update(ctx context.Context, messageId, newContent string) error {
-	input := &dynamodb.UpdateItemInput{
+func (mr *MessageRepositoryImpl) Update(ctx context.Context, roomId, messageId, newContent string) error {
+	queryInput := &dynamodb.QueryInput{
+		TableName:              aws.String(mr.dbName),
+		IndexName:              aws.String("MessageIdIndex"),
+		KeyConditionExpression: aws.String("roomId = :r and messageId = :m"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":r": {
+				S: aws.String(roomId),
+			},
+			":m": {
+				S: aws.String(messageId),
+			},
+		},
+	}
+
+	result, err := mr.db.Query(queryInput)
+	if err != nil {
+		return err
+	}
+
+	updateInput := &dynamodb.UpdateItemInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":c": {
 				S: aws.String(newContent),
 			},
 		},
-		TableName: aws.String(mr.dbName),
-		Key: map[string]*dynamodb.AttributeValue{
-			"messageId": {
-				S: aws.String(messageId),
-			},
-		},
+		TableName:        aws.String(mr.dbName),
+		Key:              result.Items[0],
 		ReturnValues:     aws.String("UPDATED_NEW"),
 		UpdateExpression: aws.String("set content = :c"),
 	}
 
-	_, err := mr.db.UpdateItem(input)
+	_, err = mr.db.UpdateItem(updateInput)
 	if err != nil {
 		return err
 	}
@@ -154,17 +174,32 @@ func (mr *MessageRepositoryImpl) Update(ctx context.Context, messageId, newConte
 	return nil
 }
 
-func (mr *MessageRepositoryImpl) Delete(ctx context.Context, messageId string) error {
-	input := &dynamodb.DeleteItemInput{
-		TableName: aws.String(mr.dbName),
-		Key: map[string]*dynamodb.AttributeValue{
-			"messageId": {
+func (mr *MessageRepositoryImpl) Delete(ctx context.Context, roomId, messageId string) error {
+	queryInput := &dynamodb.QueryInput{
+		TableName:              aws.String(mr.dbName),
+		IndexName:              aws.String("MessageIdIndex"),
+		KeyConditionExpression: aws.String("roomId = :r and messageId = :m"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":r": {
+				S: aws.String(roomId),
+			},
+			":m": {
 				S: aws.String(messageId),
 			},
 		},
 	}
 
-	_, err := mr.db.DeleteItem(input)
+	result, err := mr.db.Query(queryInput)
+	if err != nil {
+		return err
+	}
+
+	deleteInput := &dynamodb.DeleteItemInput{
+		TableName: aws.String(mr.dbName),
+		Key:       result.Items[0],
+	}
+
+	_, err = mr.db.DeleteItem(deleteInput)
 	if err != nil {
 		return err
 	}

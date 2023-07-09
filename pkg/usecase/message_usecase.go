@@ -33,20 +33,20 @@ func (mu *MessageUsecaseImpl) CreateMessage(ctx context.Context, message *model.
 	return mu.messageRepo.Create(ctx, message)
 }
 
-func (mu *MessageUsecaseImpl) UpdateMessage(ctx context.Context, messageId, newContent string) error {
-	_, err := mu.messageRepo.GetByID(ctx, messageId)
+func (mu *MessageUsecaseImpl) UpdateMessage(ctx context.Context, roomId, messageId, newContent string) error {
+	_, err := mu.messageRepo.GetByID(ctx, roomId, messageId)
 	if err != nil {
 		return err
 	}
 
-	return mu.messageRepo.Update(ctx, messageId, newContent)
+	return mu.messageRepo.Update(ctx, roomId, messageId, newContent)
 }
 
-func (mu *MessageUsecaseImpl) DeleteMessage(ctx context.Context, messageId string) error {
-	_, err := mu.messageRepo.GetByID(ctx, messageId)
+func (mu *MessageUsecaseImpl) DeleteMessage(ctx context.Context, roomId, messageId string) error {
+	_, err := mu.messageRepo.GetByID(ctx, roomId, messageId)
 	if err != nil {
 		return err
 	}
 
-	return mu.messageRepo.Delete(ctx, messageId)
+	return mu.messageRepo.Delete(ctx, roomId, messageId)
 }

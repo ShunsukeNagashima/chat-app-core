@@ -76,6 +76,7 @@ func (mc *MessageController) CreateMessage(ctx *gin.Context) {
 }
 
 func (mc *MessageController) UpdateMessage(ctx *gin.Context) {
+	roomId := ctx.Param("roomId")
 	messageId := ctx.Param("messageId")
 
 	var req struct {
@@ -92,7 +93,7 @@ func (mc *MessageController) UpdateMessage(ctx *gin.Context) {
 		return
 	}
 
-	if err := mc.messageUsecase.UpdateMessage(ctx.Request.Context(), messageId, req.Content); err != nil {
+	if err := mc.messageUsecase.UpdateMessage(ctx.Request.Context(), roomId, messageId, req.Content); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -101,9 +102,10 @@ func (mc *MessageController) UpdateMessage(ctx *gin.Context) {
 }
 
 func (mc *MessageController) DeleteMessage(ctx *gin.Context) {
+	roomId := ctx.Param("roomId")
 	messageId := ctx.Param("messageId")
 
-	if err := mc.messageUsecase.DeleteMessage(ctx.Request.Context(), messageId); err != nil {
+	if err := mc.messageUsecase.DeleteMessage(ctx.Request.Context(), roomId, messageId); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

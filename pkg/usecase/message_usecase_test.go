@@ -86,21 +86,24 @@ func TestUpdateMessage(t *testing.T) {
 
 	testCases := []struct {
 		name          string
-		messageID     string
+		roomId        string
+		messageId     string
 		newContent    string
 		getByIdReturn *model.Message
 		expectedErr   error
 	}{
 		{
 			name:          "Success",
-			messageID:     mockMessage.MessageID,
+			roomId:        mockMessage.RoomID,
+			messageId:     mockMessage.MessageID,
 			newContent:    "Hello World",
 			getByIdReturn: mockMessage,
 			expectedErr:   nil,
 		},
 		{
 			name:          "Invalid MessageID",
-			messageID:     "2",
+			roomId:        mockMessage.RoomID,
+			messageId:     "2",
 			newContent:    "Hello World",
 			getByIdReturn: nil,
 			expectedErr:   apperror.NewNotFoundErr("Message", "MessageID: 2"),
@@ -110,12 +113,12 @@ func TestUpdateMessage(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockMessageRepo := new(mocks.MessageRepository)
-			mockMessageRepo.On("GetByID", mock.Anything, tc.messageID).Return(tc.getByIdReturn, tc.expectedErr)
+			mockMessageRepo.On("GetByID", mock.Anything, tc.roomId, tc.messageId).Return(tc.getByIdReturn, tc.expectedErr)
 
-			mockMessageRepo.On("Update", mock.Anything, tc.messageID, tc.newContent).Return(nil)
+			mockMessageRepo.On("Update", mock.Anything, tc.roomId, tc.messageId, tc.newContent).Return(nil)
 			messageUsecase := NewMessageUsecase(mockMessageRepo)
 
-			err := messageUsecase.UpdateMessage(context.Background(), tc.messageID, tc.newContent)
+			err := messageUsecase.UpdateMessage(context.Background(), tc.roomId, tc.messageId, tc.newContent)
 
 			if tc.expectedErr != nil {
 				assert.Error(t, err)
@@ -141,19 +144,22 @@ func TestDeleteMessage(t *testing.T) {
 
 	testCases := []struct {
 		name          string
-		messageID     string
+		roomId        string
+		messageId     string
 		getByIdReturn *model.Message
 		expectedErr   error
 	}{
 		{
 			name:          "Success",
-			messageID:     mockMessage.MessageID,
+			roomId:        mockMessage.RoomID,
+			messageId:     mockMessage.MessageID,
 			getByIdReturn: mockMessage,
 			expectedErr:   nil,
 		},
 		{
 			name:          "Invalid MessageID",
-			messageID:     "2",
+			roomId:        mockMessage.RoomID,
+			messageId:     "2",
 			getByIdReturn: nil,
 			expectedErr:   apperror.NewNotFoundErr("Message", "MessageID: 2"),
 		},
@@ -162,12 +168,12 @@ func TestDeleteMessage(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockMessageRepo := new(mocks.MessageRepository)
-			mockMessageRepo.On("GetByID", mock.Anything, tc.messageID).Return(tc.getByIdReturn, tc.expectedErr)
+			mockMessageRepo.On("GetByID", mock.Anything, tc.roomId, tc.messageId).Return(tc.getByIdReturn, tc.expectedErr)
 
-			mockMessageRepo.On("Delete", mock.Anything, tc.messageID).Return(nil)
+			mockMessageRepo.On("Delete", mock.Anything, tc.roomId, tc.messageId).Return(nil)
 			messageUsecase := NewMessageUsecase(mockMessageRepo)
 
-			err := messageUsecase.DeleteMessage(context.Background(), tc.messageID)
+			err := messageUsecase.DeleteMessage(context.Background(), tc.roomId, tc.messageId)
 
 			if tc.expectedErr != nil {
 				assert.Error(t, err)

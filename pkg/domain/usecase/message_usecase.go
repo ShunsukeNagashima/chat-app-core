@@ -10,6 +10,6 @@ import (
 type MessageUsecase interface {
 	GetMessagesByRoomID(ctx context.Context, roomId, lastEvaluatedKey string, limit int) ([]*model.Message, string, error)
 	CreateMessage(ctx context.Context, message *model.Message) error
-	UpdateMessage(ctx context.Context, messageId, newContent string) error
-	DeleteMessage(ctx context.Context, messageId string) error
+	UpdateMessage(ctx context.Context, roomId, messageId, newContent string) error
+	DeleteMessage(ctx context.Context, roomId, messageId string) error
 }

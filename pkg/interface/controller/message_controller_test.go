@@ -204,7 +204,7 @@ func TestUpdateMessage(t *testing.T) {
 	for _, tc := range teatCases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockUsecase := new(mocks.MessageUsecase)
-			mockUsecase.On("UpdateMessage", mock.Anything, mock.Anything, mock.Anything).Return(tc.mockReturn)
+			mockUsecase.On("UpdateMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.mockReturn)
 
 			reqBody, err := json.Marshal(tc.reqBody)
 			if err != nil {
@@ -215,7 +215,7 @@ func TestUpdateMessage(t *testing.T) {
 			response := httptest.NewRecorder()
 
 			ctx, _ := gin.CreateTestContext(response)
-			ctx.Params = gin.Params{{Key: "messageId", Value: "1"}}
+			ctx.Params = gin.Params{{Key: "messageId", Value: "1"}, {Key: "roomId", Value: "1"}}
 			ctx.Request = request
 
 			mc := NewMessageController(mockUsecase, validator)
@@ -252,13 +252,13 @@ func TestDeleteMessage(t *testing.T) {
 	for _, tc := range teatCases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockUsecase := new(mocks.MessageUsecase)
-			mockUsecase.On("DeleteMessage", mock.Anything, mock.Anything).Return(tc.mockReturn)
+			mockUsecase.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything).Return(tc.mockReturn)
 
 			request, _ := http.NewRequest(http.MethodDelete, "messages", nil)
 			response := httptest.NewRecorder()
 
 			ctx, _ := gin.CreateTestContext(response)
-			ctx.Params = gin.Params{{Key: "messageId", Value: "1"}}
+			ctx.Params = gin.Params{{Key: "messageId", Value: "1"}, {Key: "roomId", Value: "1"}}
 			ctx.Request = request
 
 			mc := NewMessageController(mockUsecase, validator)

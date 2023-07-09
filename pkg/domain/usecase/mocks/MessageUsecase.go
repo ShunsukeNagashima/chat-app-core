@@ -28,13 +28,13 @@ func (_m *MessageUsecase) CreateMessage(ctx context.Context, message *model.Mess
 	return r0
 }
 
-// DeleteMessage provides a mock function with given fields: ctx, messageId
-func (_m *MessageUsecase) DeleteMessage(ctx context.Context, messageId string) error {
-	ret := _m.Called(ctx, messageId)
+// DeleteMessage provides a mock function with given fields: ctx, roomId, messageId
+func (_m *MessageUsecase) DeleteMessage(ctx context.Context, roomId string, messageId string) error {
+	ret := _m.Called(ctx, roomId, messageId)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, messageId)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, roomId, messageId)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -75,13 +75,13 @@ func (_m *MessageUsecase) GetMessagesByRoomID(ctx context.Context, roomId string
 	return r0, r1, r2
 }
 
-// UpdateMessage provides a mock function with given fields: ctx, messageId, newContent
-func (_m *MessageUsecase) UpdateMessage(ctx context.Context, messageId string, newContent string) error {
-	ret := _m.Called(ctx, messageId, newContent)
+// UpdateMessage provides a mock function with given fields: ctx, roomId, messageId, newContent
+func (_m *MessageUsecase) UpdateMessage(ctx context.Context, roomId string, messageId string, newContent string) error {
+	ret := _m.Called(ctx, roomId, messageId, newContent)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, messageId, newContent)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, roomId, messageId, newContent)
 	} else {
 		r0 = ret.Error(0)
 	}
