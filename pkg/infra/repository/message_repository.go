@@ -32,24 +32,25 @@ func NewMessageRepository(db *dynamodb.DynamoDB, er repository.ElasticsearchRepo
 
 func (mr *MessageRepositoryImpl) GetMessagesByRoomID(ctx context.Context, roomId, lastEvaluatedKey string, limit int) ([]*model.Message, string, error) {
 	input := &dynamodb.QueryInput{
-		TableName:        aws.String(mr.dbName),
-		Limit:            aws.Int64(int64(limit)),
-		ScanIndexForward: aws.Bool(false),
-		ExclusiveStartKey: map[string]*dynamodb.AttributeValue{
-			"messageId": {
+		TableName:              aws.String(mr.dbName),
+		Limit:                  aws.Int64(int64(limit)),
+		KeyConditionExpression: aws.String("roomId = :r"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":r": {
+				S: aws.String(roomId),
+			},
+		},
+	}
+
+	if lastEvaluatedKey != "" {
+		input.ExclusiveStartKey = map[string]*dynamodb.AttributeValue{
+			"roomId": {
+				S: aws.String(roomId),
+			},
+			"createdAt": {
 				S: aws.String(lastEvaluatedKey),
 			},
-		},
-		KeyConditions: map[string]*dynamodb.Condition{
-			"roomId": {
-				ComparisonOperator: aws.String("EQ"),
-				AttributeValueList: []*dynamodb.AttributeValue{
-					{
-						S: aws.String(roomId),
-					},
-				},
-			},
-		},
+		}
 	}
 
 	result, err := mr.db.Query(input)
@@ -64,7 +65,7 @@ func (mr *MessageRepositoryImpl) GetMessagesByRoomID(ctx context.Context, roomId
 
 	var nextKey string
 	if result.LastEvaluatedKey != nil {
-		nextKey = *result.LastEvaluatedKey["messageId"].S
+		nextKey = *result.LastEvaluatedKey["createdAt"].S
 	}
 
 	return messages, nextKey, nil
