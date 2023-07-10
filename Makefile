@@ -1,4 +1,4 @@
-.PHONY: up down test logs migrate lint
+.PHONY: up down test logs migrate lint gen-mocks
 
 up:
 		docker compose up -d
@@ -17,3 +17,6 @@ migrate:
 
 lint:
 		golangci-lint run --config=./.golangci.yml
+
+gen-mocks:
+		go generate ./pkg/domain/...
