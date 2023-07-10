@@ -42,7 +42,7 @@ func (r *ElasticsearchRepositoryImpl) Create(ctx context.Context, index, documen
 
 		if res.IsError() {
 			lastErr = fmt.Errorf("unexpected status code: %d", res.StatusCode)
-			log.Printf(lastErr.Error())
+			log.Printf("%s", lastErr.Error())
 			continue
 		}
 
@@ -78,7 +78,7 @@ func (r *ElasticsearchRepositoryImpl) Update(ctx context.Context, index, documen
 
 		if res.IsError() {
 			lastErr = fmt.Errorf("unexpected status code: %d", res.StatusCode)
-			log.Printf(lastErr.Error())
+			log.Printf("%s", lastErr.Error())
 			continue
 		}
 
@@ -113,7 +113,7 @@ func (r *ElasticsearchRepositoryImpl) Delete(ctx context.Context, index, documen
 
 		if res.IsError() {
 			lastErr = fmt.Errorf("unexpected status code: %d", res.StatusCode)
-			log.Printf(lastErr.Error())
+			log.Printf("%s", lastErr.Error())
 			continue
 		}
 

@@ -124,7 +124,7 @@ func (mr *MessageRepositoryImpl) Create(ctx context.Context, message *model.Mess
 	}
 
 	if err := mr.er.Create(ctx, "messages", message.MessageID, bytes.NewReader(messageJson)); err != nil {
-		log.Printf(err.Error())
+		log.Printf("%s", err.Error())
 	}
 
 	return nil
@@ -168,7 +168,7 @@ func (mr *MessageRepositoryImpl) Update(ctx context.Context, roomId, messageId, 
 	}
 
 	if err := mr.er.Update(ctx, "messages", messageId, strings.NewReader(fmt.Sprintf(`{"doc": {"content": "%s"}}`, newContent))); err != nil {
-		log.Printf(err.Error())
+		log.Printf("%s", err.Error())
 	}
 
 	return nil
@@ -205,7 +205,7 @@ func (mr *MessageRepositoryImpl) Delete(ctx context.Context, roomId, messageId s
 	}
 
 	if err := mr.er.Delete(ctx, "messages", messageId); err != nil {
-		log.Printf(err.Error())
+		log.Printf("%s", err.Error())
 	}
 
 	return nil

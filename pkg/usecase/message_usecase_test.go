@@ -129,7 +129,6 @@ func TestUpdateMessage(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestDeleteMessage(t *testing.T) {
@@ -181,7 +180,6 @@ func TestDeleteMessage(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				mockMessageRepo.AssertExpectations(t)
-
 			}
 		})
 	}
