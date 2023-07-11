@@ -91,3 +91,20 @@ func (uc *UserController) SearchUsers(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"result": users})
 }
+
+func (uc *UserController) BatchGetUsers(ctx *gin.Context) {
+	userIds := ctx.QueryArray("userIds")
+
+	if len(userIds) == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "userIds is required"})
+		return
+	}
+
+	users, err := uc.userUsecase.BatchGetUsers(ctx.Request.Context(), userIds)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"result": users})
+}

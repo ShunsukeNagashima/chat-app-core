@@ -212,3 +212,48 @@ func TestSearchUsers(t *testing.T) {
 	assert.Equal(t, mockUsers, result.Result)
 	mockUsecase.AssertExpectations(t)
 }
+
+func TestBatchGetUsers(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	mockUsecase := new(mocks.UserUsecase)
+	validator := validator.New()
+
+	userIds := []string{"1", "2", "3"}
+	var mockUsers []*model.User
+	var query string
+	for _, userId := range userIds {
+		mockUsers = append(mockUsers, &model.User{
+			UserID:   userId,
+			Username: "user-" + userId,
+			Email:    "user-" + userId + "@example.com",
+		})
+		query += "userIds=" + userId
+		if userId != userIds[len(userIds)-1] {
+			query += "&"
+		}
+	}
+
+	request, _ := http.NewRequest(http.MethodPost, "/users/batch?"+query, nil)
+	response := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(response)
+	ctx.Request = request
+
+	mockUsecase.On("BatchGetUsers", mock.Anything, mock.Anything).Return(mockUsers, nil)
+
+	uc := NewUserController(mockUsecase, validator)
+
+	uc.BatchGetUsers(ctx)
+
+	assert.Equal(t, http.StatusOK, response.Code)
+
+	var result struct {
+		Result []*model.User `json:"result"`
+	}
+
+	if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, mockUsers, result.Result)
+	mockUsecase.AssertExpectations(t)
+}

@@ -107,3 +107,31 @@ func TestSearchUsers(t *testing.T) {
 	assert.Equal(t, len(mockUsers), len(users))
 	mockRepo.AssertExpectations(t)
 }
+
+func TestBatchGetUsers(t *testing.T) {
+	mockRepo := new(repoMocks.UserRepository)
+	mockAuth := new(authMocks.FirebaseAuthenticator)
+
+	var mockUsers []*model.User
+
+	for i := 1; i <= 3; i++ {
+		iStr := strconv.Itoa(i)
+		mockUser := &model.User{
+			UserID:   "id-" + iStr,
+			Username: "user-" + iStr,
+			Email:    "user-" + iStr + "@example.com",
+		}
+		mockUsers = append(mockUsers, mockUser)
+	}
+
+	mockRepo.On("BatchGetUsers", mock.Anything, []string{"1", "2", "3"}).Return(mockUsers, nil)
+
+	userUsecase := NewUserUsecase(mockRepo, mockAuth)
+
+	users, err := userUsecase.BatchGetUsers(context.Background(), []string{"1", "2", "3"})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, users)
+	assert.Equal(t, len(mockUsers), len(users))
+	mockRepo.AssertExpectations(t)
+}
