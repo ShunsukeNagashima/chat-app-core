@@ -43,24 +43,6 @@ func SetupMessages() error {
 			WriteCapacityUnits: aws.Int64(10),
 		},
 		TableName: aws.String(tableName),
-		LocalSecondaryIndexes: []*dynamodb.LocalSecondaryIndex{
-			{
-				IndexName: aws.String("MessageIdIndex"),
-				KeySchema: []*dynamodb.KeySchemaElement{
-					{
-						AttributeName: aws.String("roomId"),
-						KeyType:       aws.String("HASH"),
-					},
-					{
-						AttributeName: aws.String("messageId"),
-						KeyType:       aws.String("RANGE"),
-					},
-				},
-				Projection: &dynamodb.Projection{
-					ProjectionType: aws.String("ALL"),
-				},
-			},
-		},
 	})
 	if err != nil {
 		return err
