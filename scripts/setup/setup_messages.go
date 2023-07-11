@@ -1,12 +1,18 @@
 package scripts
 
 import (
+	"strconv"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/google/uuid"
+	"github.com/shunsukenagashima/chat-api/pkg/clock"
+	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 )
 
-func SetupMessages() error {
+func SetupMessages(users []*model.User, roomId string) error {
 	tableName := "Messages"
 
 	sess, _ := session.NewSession(&aws.Config{
@@ -48,29 +54,34 @@ func SetupMessages() error {
 		return err
 	}
 
-	// テストデータの投入
-	_, err = svc.PutItem(&dynamodb.PutItemInput{
-		Item: map[string]*dynamodb.AttributeValue{
-			"messageId": {
-				S: aws.String("sampleMessageID"),
+	clock := clock.FixedClocker{}
+
+	for i, user := range users {
+		// テストデータの投入
+		_, err = svc.PutItem(&dynamodb.PutItemInput{
+			Item: map[string]*dynamodb.AttributeValue{
+				"messageId": {
+					S: aws.String(uuid.New().String()),
+				},
+				"content": {
+					S: aws.String("sample message" + strconv.Itoa(i)),
+				},
+				"createdAt": {
+					S: aws.String(clock.Now().Add(time.Duration(i) * time.Minute).Format("2006-01-02T15:04:05Z")),
+				},
+				"roomId": {
+					S: aws.String(roomId),
+				},
+				"userId": {
+					S: aws.String(user.UserID),
+				},
 			},
-			"content": {
-				S: aws.String("sample message"),
-			},
-			"createdAt": {
-				S: aws.String("2023-06-01T12:00:00Z"),
-			},
-			"roomId": {
-				S: aws.String("sampleRoomID"),
-			},
-			"senderID": {
-				S: aws.String("sampleSenderID"),
-			},
-		},
-		TableName: aws.String(tableName),
-	})
-	if err != nil {
-		return err
+			TableName: aws.String(tableName),
+		})
+		if err != nil {
+			return err
+		}
 	}
+
 	return nil
 }

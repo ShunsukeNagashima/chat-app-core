@@ -4,9 +4,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 )
 
-func SetupRoomUsers(roomIDs []string, userId string) error {
+func SetupRoomUsers(roomIDs []string, users []*model.User) error {
 	tableName := "RoomUsers"
 
 	sess, _ := session.NewSession(&aws.Config{
@@ -78,7 +79,24 @@ func SetupRoomUsers(roomIDs []string, userId string) error {
 					S: aws.String(roomId),
 				},
 				"userId": {
-					S: aws.String(userId),
+					S: aws.String(users[0].UserID),
+				},
+			},
+			TableName: aws.String(tableName),
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, user := range users {
+		_, err = svc.PutItem(&dynamodb.PutItemInput{
+			Item: map[string]*dynamodb.AttributeValue{
+				"roomId": {
+					S: aws.String(roomIDs[0]),
+				},
+				"userId": {
+					S: aws.String(user.UserID),
 				},
 			},
 			TableName: aws.String(tableName),
