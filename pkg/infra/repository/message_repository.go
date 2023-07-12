@@ -35,6 +35,7 @@ func (mr *MessageRepositoryImpl) GetMessagesByRoomID(ctx context.Context, roomId
 		TableName:              aws.String(mr.dbName),
 		Limit:                  aws.Int64(int64(limit)),
 		KeyConditionExpression: aws.String("roomId = :r"),
+		ScanIndexForward:       aws.Bool(false),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":r": {
 				S: aws.String(roomId),
