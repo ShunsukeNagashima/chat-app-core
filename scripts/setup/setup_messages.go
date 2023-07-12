@@ -56,30 +56,33 @@ func SetupMessages(users []*model.User, roomId string) error {
 
 	clock := clock.FixedClocker{}
 
-	for i, user := range users {
-		// テストデータの投入
-		_, err = svc.PutItem(&dynamodb.PutItemInput{
-			Item: map[string]*dynamodb.AttributeValue{
-				"messageId": {
-					S: aws.String(uuid.New().String()),
+	totalUsers := len(users)
+	for j := 0; j < 2; j++ {
+		for i, user := range users {
+			// テストデータの投入
+			_, err = svc.PutItem(&dynamodb.PutItemInput{
+				Item: map[string]*dynamodb.AttributeValue{
+					"messageId": {
+						S: aws.String(uuid.New().String()),
+					},
+					"content": {
+						S: aws.String("sample message" + strconv.Itoa(i+j*totalUsers)),
+					},
+					"createdAt": {
+						S: aws.String(clock.Now().Add(time.Duration(i+j*totalUsers) * time.Minute).Format("2006-01-02T15:04:05Z")),
+					},
+					"roomId": {
+						S: aws.String(roomId),
+					},
+					"userId": {
+						S: aws.String(user.UserID),
+					},
 				},
-				"content": {
-					S: aws.String("sample message" + strconv.Itoa(i)),
-				},
-				"createdAt": {
-					S: aws.String(clock.Now().Add(time.Duration(i) * time.Minute).Format("2006-01-02T15:04:05Z")),
-				},
-				"roomId": {
-					S: aws.String(roomId),
-				},
-				"userId": {
-					S: aws.String(user.UserID),
-				},
-			},
-			TableName: aws.String(tableName),
-		})
-		if err != nil {
-			return err
+				TableName: aws.String(tableName),
+			})
+			if err != nil {
+				return err
+			}
 		}
 	}
 
