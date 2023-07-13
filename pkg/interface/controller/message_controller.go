@@ -25,7 +25,7 @@ func NewMessageController(messageUsecase usecase.MessageUsecase, validator *vali
 func (mc *MessageController) GetMessagesByRoomID(ctx *gin.Context) {
 	roomId := ctx.Param("roomId")
 	lastEvaluatedKey := ctx.Query("lastEvaluatedKey")
-	limit := ctx.DefaultQuery("limit", "10")
+	limit := ctx.DefaultQuery("limit", "20")
 
 	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
