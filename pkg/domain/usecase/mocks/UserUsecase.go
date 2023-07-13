@@ -14,6 +14,32 @@ type UserUsecase struct {
 	mock.Mock
 }
 
+// BatchGetUsers provides a mock function with given fields: ctx, userIds
+func (_m *UserUsecase) BatchGetUsers(ctx context.Context, userIds []string) ([]*model.User, error) {
+	ret := _m.Called(ctx, userIds)
+
+	var r0 []*model.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]*model.User, error)); ok {
+		return rf(ctx, userIds)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string) []*model.User); ok {
+		r0 = rf(ctx, userIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, userIds)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateUser provides a mock function with given fields: ctx, user, idToken
 func (_m *UserUsecase) CreateUser(ctx context.Context, user *model.User, idToken string) error {
 	ret := _m.Called(ctx, user, idToken)

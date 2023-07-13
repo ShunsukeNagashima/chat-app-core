@@ -51,3 +51,7 @@ func (uu *UserUsecaseImpl) GetUserByID(ctx context.Context, userId string) (*mod
 func (uu *UserUsecaseImpl) SearchUsers(ctx context.Context, query string, from, size int) ([]*model.User, error) {
 	return uu.repo.SearchUsers(ctx, query, from, size)
 }
+
+func (uu *UserUsecaseImpl) BatchGetUsers(ctx context.Context, userIds []string) ([]*model.User, error) {
+	return uu.repo.BatchGetUsers(ctx, userIds)
+}

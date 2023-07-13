@@ -16,9 +16,9 @@ services:
 
   dynamodb-local:
     image: amazon/dynamodb-local:latest
-    command: -jar DynamoDBLocal.jar -sharedDb -dbPath /data # file path for data persistence
+    command: -jar DynamoDBLocal.jar -sharedDb -dbPath /data
     volumes:
-      - dynamodb:/data # data persistence
+      - ./docker/dynamodb:/data
     ports:
       - 8000:8000
 

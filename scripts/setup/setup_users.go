@@ -73,7 +73,7 @@ func SetupUsers() ([]*model.User, error) {
 		return nil, err
 	}
 
-	for i := 1; i <= 10; i++ {
+	for i := 1; i <= 30; i++ {
 		userId := uuid.New().String()
 		var userName string
 		if i%2 == 0 {

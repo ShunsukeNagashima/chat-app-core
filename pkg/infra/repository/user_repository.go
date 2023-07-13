@@ -169,3 +169,39 @@ func (r *UserRepositoryImpl) SearchUsers(ctx context.Context, query string, from
 
 	return users, nil
 }
+
+func (r *UserRepositoryImpl) BatchGetUsers(ctx context.Context, userIds []string) ([]*model.User, error) {
+	var keys []map[string]*dynamodb.AttributeValue
+	for _, userId := range userIds {
+		keys = append(keys, map[string]*dynamodb.AttributeValue{
+			"userId": {
+				S: aws.String(userId),
+			},
+		})
+	}
+
+	input := &dynamodb.BatchGetItemInput{
+		RequestItems: map[string]*dynamodb.KeysAndAttributes{
+			r.dbName: {
+				Keys: keys,
+			},
+		},
+	}
+
+	result, err := r.db.BatchGetItem(input)
+	if err != nil {
+		return nil, err
+	}
+
+	var users []*model.User
+	for _, item := range result.Responses[r.dbName] {
+		var user model.User
+		if err := dynamodbattribute.UnmarshalMap(item, &user); err != nil {
+			return nil, err
+		}
+
+		users = append(users, &user)
+	}
+
+	return users, nil
+}

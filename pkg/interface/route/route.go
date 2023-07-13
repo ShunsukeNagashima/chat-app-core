@@ -18,8 +18,13 @@ func RegisterRoutes(router *gin.Engine, controllers *controller.Controllers) {
 		apiGroup.POST("/users", controllers.UserController.CreateUser)
 		apiGroup.GET("/users/:userId/rooms", controllers.RoomUserController.GetAllRoomsByUserID)
 		apiGroup.GET("/users/search", controllers.UserController.SearchUsers)
+		apiGroup.GET("/users/batch", controllers.UserController.BatchGetUsers)
 		apiGroup.DELETE("/rooms/:roomId/users/:userId", controllers.RoomUserController.RemoveUserFromRoom)
 		apiGroup.POST("/rooms/:roomId/users", controllers.RoomUserController.AddUsersToRoom)
+		apiGroup.GET("/rooms/:roomId/messages", controllers.MessageController.GetMessagesByRoomID)
+		apiGroup.POST("/rooms/:roomId/messages", controllers.MessageController.CreateMessage)
+		apiGroup.PUT("/rooms/:roomId/messages/:messageId", controllers.MessageController.UpdateMessage)
+		apiGroup.DELETE("/rooms/:roomId/messages/:messageId", controllers.MessageController.DeleteMessage)
 	}
 
 	router.GET("/ws/:roomId", controllers.WSController.HandleRoomConnection)
