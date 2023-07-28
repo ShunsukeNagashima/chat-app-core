@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/shunsukenagashima/chat-api/pkg/apperror"
+	"github.com/shunsukenagashima/chat-api/pkg/clock"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/repository"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/usecase"
@@ -40,6 +41,9 @@ func (uu *UserUsecaseImpl) CreateUser(ctx context.Context, user *model.User, idT
 			return err
 		}
 	}
+
+	clock := clock.RealClocker{}
+	user.CreatedAt = clock.Now()
 
 	return uu.repo.Create(ctx, user)
 }
