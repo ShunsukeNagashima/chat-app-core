@@ -47,9 +47,10 @@ func SetupUsers() ([]*model.User, error) {
 	var users []*model.User
 
 	firebaseUser := &model.User{
-		UserID:   "Ko9BmAGyeBSP0w3WAnf83eg31rU2",
+		UserID:   "qTF9aUAHNqNyi7R3sQtSGSRhTft1",
 		Username: "Sample User",
-		Email:    "sample-user@example.com",
+		Email:    "shun.mmks_n@icloud.com",
+		ImageURL: "https://images.unsplash.com/photo-1552053831-71594a27632d?fit=crop&w=500&h=500",
 	}
 
 	users = append(users, firebaseUser)

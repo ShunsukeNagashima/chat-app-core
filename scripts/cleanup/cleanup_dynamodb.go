@@ -16,11 +16,14 @@ func CleanUpDynamodb() error {
 
 	svc := dynamodb.New(sess)
 
-	tableNames := []string{"Users", "Messages", "RoomUsers", "Rooms", "Likes", "Readby"}
+	result, err := svc.ListTables(&dynamodb.ListTablesInput{})
+	if err != nil {
+		return err
+	}
 
-	for _, tableName := range tableNames {
+	for _, tableName := range result.TableNames {
 		_, err := svc.DeleteTable(&dynamodb.DeleteTableInput{
-			TableName: aws.String(tableName),
+			TableName: tableName,
 		})
 
 		if err != nil {
