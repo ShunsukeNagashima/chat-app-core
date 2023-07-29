@@ -29,19 +29,11 @@ func SetupUsers() ([]*model.User, error) {
 				AttributeName: aws.String("userId"),
 				AttributeType: aws.String("S"),
 			},
-			{
-				AttributeName: aws.String("createdAt"),
-				AttributeType: aws.String("S"),
-			},
 		},
 		KeySchema: []*dynamodb.KeySchemaElement{
 			{
 				AttributeName: aws.String("userId"),
 				KeyType:       aws.String("HASH"),
-			},
-			{
-				AttributeName: aws.String("createdAt"),
-				KeyType:       aws.String("RANGE"),
 			},
 		},
 		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
@@ -100,6 +92,8 @@ func SetupUsers() ([]*model.User, error) {
 			userName = "Sample User Odd" + strconv.Itoa(i)
 		}
 		email := "sample-user-" + strconv.Itoa(i) + "@example.com"
+		createdAt := clock.Now().Add(time.Duration(i) * time.Hour)
+		imageUrl := "test-image-url"
 		// テストデータの投入
 		_, err = svc.PutItem(&dynamodb.PutItemInput{
 			Item: map[string]*dynamodb.AttributeValue{
@@ -125,9 +119,11 @@ func SetupUsers() ([]*model.User, error) {
 			return nil, err
 		}
 		user := &model.User{
-			UserID:   userId,
-			Username: userName,
-			Email:    email,
+			UserID:    userId,
+			Username:  userName,
+			Email:     email,
+			ImageURL:  imageUrl,
+			CreatedAt: createdAt,
 		}
 		users = append(users, user)
 	}
