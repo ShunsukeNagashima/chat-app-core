@@ -3,6 +3,7 @@ package scripts
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -28,7 +29,25 @@ func CleanUpElasticsearch() error {
 		return err
 	}
 
-	indexNames := []string{"users"}
+	catIndexReq := esapi.CatIndicesRequest{}
+	res, err := catIndexReq.Do(context.Background(), es)
+	if err != nil {
+		return err
+	}
+
+	defer res.Body.Close()
+
+	var indices []map[string]interface{}
+	err = json.NewDecoder(res.Body).Decode(&indices)
+	if err != nil {
+		return err
+	}
+
+	indexNames := make([]string, len(indices))
+	for i, index := range indices {
+		indexNames[i] = index["index"].(string)
+	}
+
 	for _, indexName := range indexNames {
 		deleteIndexReq := esapi.IndicesDeleteRequest{
 			Index: []string{indexName},

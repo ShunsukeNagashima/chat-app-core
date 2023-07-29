@@ -24,10 +24,11 @@ func NewUserController(userUsecase usecase.UserUsecase, validator *validator.Val
 
 func (uc *UserController) CreateUser(ctx *gin.Context) {
 	var req struct {
-		UserID  string `json:"userId" validate:"required"`
-		Name    string `json:"name" validate:"required,min=1,max=30"`
-		Email   string `json:"email" validate:"required,email"`
-		IDToken string `json:"idToken" validate:"required"`
+		UserID   string `json:"userId" validate:"required"`
+		Name     string `json:"name" validate:"required,min=1,max=30"`
+		Email    string `json:"email" validate:"required,email"`
+		ImageURL string `json:"imageUrl" validate:"required,url"`
+		IDToken  string `json:"idToken" validate:"required"`
 	}
 
 	if err := ctx.BindJSON(&req); err != nil {
@@ -44,6 +45,7 @@ func (uc *UserController) CreateUser(ctx *gin.Context) {
 		UserID:   req.UserID,
 		Username: req.Name,
 		Email:    req.Email,
+		ImageURL: req.ImageURL,
 	}
 
 	if err := uc.userUsecase.CreateUser(ctx.Request.Context(), user, req.IDToken); err != nil {
