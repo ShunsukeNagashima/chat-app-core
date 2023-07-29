@@ -2,11 +2,13 @@ package scripts
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/google/uuid"
+	"github.com/shunsukenagashima/chat-api/pkg/clock"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 )
 
@@ -27,11 +29,19 @@ func SetupUsers() ([]*model.User, error) {
 				AttributeName: aws.String("userId"),
 				AttributeType: aws.String("S"),
 			},
+			{
+				AttributeName: aws.String("createdAt"),
+				AttributeType: aws.String("S"),
+			},
 		},
 		KeySchema: []*dynamodb.KeySchemaElement{
 			{
 				AttributeName: aws.String("userId"),
 				KeyType:       aws.String("HASH"),
+			},
+			{
+				AttributeName: aws.String("createdAt"),
+				KeyType:       aws.String("RANGE"),
 			},
 		},
 		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
@@ -45,12 +55,13 @@ func SetupUsers() ([]*model.User, error) {
 	}
 
 	var users []*model.User
-
+	clock := clock.FixedClocker{}
 	firebaseUser := &model.User{
-		UserID:   "qTF9aUAHNqNyi7R3sQtSGSRhTft1",
-		Username: "Sample User",
-		Email:    "shun.mmks_n@icloud.com",
-		ImageURL: "https://images.unsplash.com/photo-1552053831-71594a27632d?fit=crop&w=500&h=500",
+		UserID:    "qTF9aUAHNqNyi7R3sQtSGSRhTft1",
+		Username:  "Sample User",
+		Email:     "shun.mmks_n@icloud.com",
+		ImageURL:  "https://images.unsplash.com/photo-1552053831-71594a27632d?fit=crop&w=500&h=500",
+		CreatedAt: clock.Now(),
 	}
 
 	users = append(users, firebaseUser)
@@ -66,6 +77,12 @@ func SetupUsers() ([]*model.User, error) {
 			},
 			"email": {
 				S: aws.String(firebaseUser.Email),
+			},
+			"imageUrl": {
+				S: aws.String(firebaseUser.ImageURL),
+			},
+			"createdAt": {
+				S: aws.String(firebaseUser.CreatedAt.Format("2006-01-02T15:04:05Z")),
 			},
 		},
 		TableName: aws.String(tableName),
@@ -94,6 +111,12 @@ func SetupUsers() ([]*model.User, error) {
 				},
 				"email": {
 					S: aws.String(email),
+				},
+				"createdAt": {
+					S: aws.String(clock.Now().Add(time.Duration(i) * time.Hour).Format("2006-01-02T15:04:05Z")),
+				},
+				"imageUrl": {
+					S: aws.String("test-image-url"),
 				},
 			},
 			TableName: aws.String(tableName),

@@ -29,7 +29,9 @@ func CleanUpElasticsearch() error {
 		return err
 	}
 
-	catIndexReq := esapi.CatIndicesRequest{}
+	catIndexReq := esapi.CatIndicesRequest{
+		Format: "json",
+	}
 	res, err := catIndexReq.Do(context.Background(), es)
 	if err != nil {
 		return err
@@ -43,29 +45,22 @@ func CleanUpElasticsearch() error {
 		return err
 	}
 
-	indexNames := make([]string, len(indices))
-	for i, index := range indices {
-		indexNames[i] = index["index"].(string)
-	}
+	for _, index := range indices {
+		indexName := index["index"].(string)
+		fmt.Println("Deleting index:", indexName)
 
-	for _, indexName := range indexNames {
-		deleteIndexReq := esapi.IndicesDeleteRequest{
+		deleteReq := esapi.IndicesDeleteRequest{
 			Index: []string{indexName},
 		}
 
-		res, err := deleteIndexReq.Do(context.Background(), es)
+		deleteRes, err := deleteReq.Do(context.Background(), es)
 		if err != nil {
-			return err
-		}
-
-		defer res.Body.Close()
-
-		if res.StatusCode == 404 {
 			continue
 		}
+		defer deleteRes.Body.Close()
 
-		if res.IsError() {
-			return fmt.Errorf("cannot delete index: %s", res)
+		if deleteRes.IsError() {
+			return fmt.Errorf("error deleting index %s: %s", indexName, deleteRes.String())
 		}
 	}
 

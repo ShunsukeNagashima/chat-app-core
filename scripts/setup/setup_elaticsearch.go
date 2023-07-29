@@ -49,7 +49,9 @@ func SetUpElasticsearch(users []*model.User) error {
 				"properties": {
 					"userId": { "type": "keyword" },
 					"userName": { "type": "text" },
-					"email": { "type": "keyword" }
+					"email": { "type": "keyword" },
+					"createdAt": { "type": "date" },
+					"imageUrl" : {"type": "keyword" }
 				}
 			}
 		}
