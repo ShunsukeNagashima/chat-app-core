@@ -20,3 +20,7 @@ lint:
 
 gen-mocks:
 		go generate ./pkg/domain/...
+
+build: ## Build docker image to deploy
+		docker build -t chat-app-core:latest \
+						--target deploy .
