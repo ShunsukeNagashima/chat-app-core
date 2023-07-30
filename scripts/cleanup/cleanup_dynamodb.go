@@ -29,6 +29,8 @@ func CleanUpDynamodb() error {
 		if err != nil {
 			return err
 		}
+
+		log.Printf("Table %s deleted", *tableName)
 	}
 
 	log.Print("Dynamodb tables cleanup completed")

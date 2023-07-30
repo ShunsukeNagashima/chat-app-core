@@ -7,10 +7,12 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-json"
+	"github.com/shunsukenagashima/chat-api/pkg/clock"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/usecase/mocks"
 	"github.com/stretchr/testify/assert"
@@ -182,22 +184,26 @@ func TestSearchUsers(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	mockUsecase := new(mocks.UserUsecase)
 	validator := validator.New()
+	clock := clock.FixedClocker{}
 
 	var mockUsers []*model.User
 	for i := 1; i <= 3; i++ {
+		currentTime := clock.Now().Add(time.Duration(i) * time.Hour)
 		mockUsers = append(mockUsers, &model.User{
-			UserID:   strconv.Itoa(i),
-			Username: "user-" + strconv.Itoa(i),
-			Email:    "user-" + strconv.Itoa(i) + "@example.com",
+			UserID:    strconv.Itoa(i),
+			Username:  "user-" + strconv.Itoa(i),
+			Email:     "user-" + strconv.Itoa(i) + "@example.com",
+			ImageURL:  "test-image-url",
+			CreatedAt: currentTime,
 		})
 	}
 
-	request, _ := http.NewRequest(http.MethodPost, "/users/search?query=user&from=0&size=10", nil)
+	request, _ := http.NewRequest(http.MethodPost, "/users/search?query=user&nextKey=&size=10", nil)
 	response := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(response)
 	ctx.Request = request
 
-	mockUsecase.On("SearchUsers", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mockUsers, nil)
+	mockUsecase.On("SearchUsers", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mockUsers, mockUsers[len(mockUsers)-1].CreatedAt.Format(time.RFC3339), nil)
 
 	uc := NewUserController(mockUsecase, validator)
 
@@ -206,7 +212,8 @@ func TestSearchUsers(t *testing.T) {
 	assert.Equal(t, http.StatusOK, response.Code)
 
 	var result struct {
-		Result []*model.User `json:"result"`
+		Result  []*model.User `json:"result"`
+		NextKey string        `json:"nextKey"`
 	}
 
 	if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil {

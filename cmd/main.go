@@ -41,7 +41,7 @@ func run(ctx context.Context) error {
 	}
 
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"http://localhost:3000"}
+	corsConfig.AllowAllOrigins = true
 
 	router.Use(cors.New(corsConfig))
 

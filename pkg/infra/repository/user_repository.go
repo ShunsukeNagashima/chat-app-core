@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -28,6 +29,7 @@ type EsSearchResponse struct {
 	Hits struct {
 		Hits []struct {
 			Source *model.User `json:"_source"`
+			Sort   []int       `json:"sort"`
 		} `json:"hits"`
 	} `json:"hits"`
 }
@@ -125,11 +127,15 @@ func (r *UserRepositoryImpl) GetByID(ctx context.Context, userId string) (*model
 	return &user, nil
 }
 
-func (r *UserRepositoryImpl) SearchUsers(ctx context.Context, query string, from, size int) ([]*model.User, error) {
+func (r *UserRepositoryImpl) SearchUsers(ctx context.Context, query, nextKey string, size int) ([]*model.User, string, error) {
 	var buf bytes.Buffer
 	queryMap := map[string]interface{}{
-		"from": from,
-		"size": size,
+		"size": size + 1,
+		"sort": []map[string]string{
+			{
+				"createdAt": "desc",
+			},
+		},
 		"query": map[string]interface{}{
 			"match_phrase_prefix": map[string]interface{}{
 				"userName": query,
@@ -137,8 +143,12 @@ func (r *UserRepositoryImpl) SearchUsers(ctx context.Context, query string, from
 		},
 	}
 
+	if nextKey != "" {
+		queryMap["search_after"] = []string{nextKey}
+	}
+
 	if err := json.NewEncoder(&buf).Encode(queryMap); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	res, err := r.es.Search(
@@ -149,17 +159,17 @@ func (r *UserRepositoryImpl) SearchUsers(ctx context.Context, query string, from
 		r.es.Search.WithPretty(),
 	)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return nil, fmt.Errorf("error getting response: %s", res.String())
+		return nil, "", fmt.Errorf("error getting response: %s", res.String())
 	}
 
 	var esResponse EsSearchResponse
 	if err := json.NewDecoder(res.Body).Decode(&esResponse); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	users := make([]*model.User, len(esResponse.Hits.Hits))
@@ -167,7 +177,14 @@ func (r *UserRepositoryImpl) SearchUsers(ctx context.Context, query string, from
 		users[i] = hit.Source
 	}
 
-	return users, nil
+	newNextKey := ""
+	if len(esResponse.Hits.Hits) == size+1 {
+		lastHit := esResponse.Hits.Hits[len(esResponse.Hits.Hits)-2]
+		newNextKey = time.Unix(int64(lastHit.Sort[0]/1000), 0).Format(time.RFC3339)
+		users = users[:len(users)-1]
+	}
+
+	return users, newNextKey, nil
 }
 
 func (r *UserRepositoryImpl) BatchGetUsers(ctx context.Context, userIds []string) ([]*model.User, error) {

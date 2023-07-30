@@ -2,11 +2,13 @@ package scripts
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/google/uuid"
+	"github.com/shunsukenagashima/chat-api/pkg/clock"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 )
 
@@ -45,12 +47,13 @@ func SetupUsers() ([]*model.User, error) {
 	}
 
 	var users []*model.User
-
+	clock := clock.FixedClocker{}
 	firebaseUser := &model.User{
-		UserID:   "qTF9aUAHNqNyi7R3sQtSGSRhTft1",
-		Username: "Sample User",
-		Email:    "shun.mmks_n@icloud.com",
-		ImageURL: "https://images.unsplash.com/photo-1552053831-71594a27632d?fit=crop&w=500&h=500",
+		UserID:    "qTF9aUAHNqNyi7R3sQtSGSRhTft1",
+		Username:  "Sample User",
+		Email:     "shun.mmks_n@icloud.com",
+		ImageURL:  "https://images.unsplash.com/photo-1552053831-71594a27632d?fit=crop&w=500&h=500",
+		CreatedAt: clock.Now(),
 	}
 
 	users = append(users, firebaseUser)
@@ -66,6 +69,12 @@ func SetupUsers() ([]*model.User, error) {
 			},
 			"email": {
 				S: aws.String(firebaseUser.Email),
+			},
+			"imageUrl": {
+				S: aws.String(firebaseUser.ImageURL),
+			},
+			"createdAt": {
+				S: aws.String(firebaseUser.CreatedAt.Format("2006-01-02T15:04:05Z")),
 			},
 		},
 		TableName: aws.String(tableName),
@@ -83,6 +92,8 @@ func SetupUsers() ([]*model.User, error) {
 			userName = "Sample User Odd" + strconv.Itoa(i)
 		}
 		email := "sample-user-" + strconv.Itoa(i) + "@example.com"
+		createdAt := clock.Now().Add(time.Duration(i) * time.Hour)
+		imageUrl := "test-image-url"
 		// テストデータの投入
 		_, err = svc.PutItem(&dynamodb.PutItemInput{
 			Item: map[string]*dynamodb.AttributeValue{
@@ -95,6 +106,12 @@ func SetupUsers() ([]*model.User, error) {
 				"email": {
 					S: aws.String(email),
 				},
+				"createdAt": {
+					S: aws.String(clock.Now().Add(time.Duration(i) * time.Hour).Format("2006-01-02T15:04:05Z")),
+				},
+				"imageUrl": {
+					S: aws.String("test-image-url"),
+				},
 			},
 			TableName: aws.String(tableName),
 		})
@@ -102,9 +119,11 @@ func SetupUsers() ([]*model.User, error) {
 			return nil, err
 		}
 		user := &model.User{
-			UserID:   userId,
-			Username: userName,
-			Email:    email,
+			UserID:    userId,
+			Username:  userName,
+			Email:     email,
+			ImageURL:  imageUrl,
+			CreatedAt: createdAt,
 		}
 		users = append(users, user)
 	}
