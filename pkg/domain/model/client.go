@@ -45,7 +45,7 @@ func (c *Client) Read() {
 				break
 			}
 			c.Hub.BroadcastEvent(&message)
-		case UserJoined:
+		case RoomUserChange:
 			var eventData RoomUserDetails
 			err := json.Unmarshal(rawEvent.Data, &eventData)
 			if err != nil {
@@ -79,7 +79,7 @@ func (c *Client) Write() {
 		case *Message:
 			eventType = MessageSent
 		case *RoomUserDetails:
-			eventType = UserJoined
+			eventType = RoomUserChange
 		default:
 			log.Printf("Invalid event type: %v", dataType)
 			continue

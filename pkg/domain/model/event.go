@@ -14,8 +14,8 @@ type RawEvent struct {
 }
 
 const (
-	MessageSent EventType = "MessageSent"
-	UserJoined  EventType = "UserJoined"
+	MessageSent    EventType = "MessageSent"
+	RoomUserChange EventType = "RoomUserChange"
 )
 
 type RoomUserDetails struct {
