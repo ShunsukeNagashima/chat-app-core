@@ -70,14 +70,8 @@ func (uc *UserController) GetUserByID(ctx *gin.Context) {
 
 func (uc *UserController) SearchUsers(ctx *gin.Context) {
 	query := ctx.Query("query")
-	fromStr := ctx.DefaultQuery("from", "0")
+	nextKey := ctx.Query("nextKey")
 	sizeStr := ctx.DefaultQuery("size", "20")
-
-	from, err := strconv.Atoi(fromStr)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
 
 	size, err := strconv.Atoi(sizeStr)
 	if err != nil {
@@ -85,13 +79,16 @@ func (uc *UserController) SearchUsers(ctx *gin.Context) {
 		return
 	}
 
-	users, err := uc.userUsecase.SearchUsers(ctx.Request.Context(), query, from, size)
+	users, nextKey, err := uc.userUsecase.SearchUsers(ctx.Request.Context(), query, nextKey, size)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"result": users})
+	ctx.JSON(http.StatusOK, gin.H{
+		"result":  users,
+		"nextKey": nextKey,
+	})
 }
 
 func (uc *UserController) BatchGetUsers(ctx *gin.Context) {

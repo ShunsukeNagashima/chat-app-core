@@ -4,9 +4,11 @@ import (
 	"context"
 	"strconv"
 	"testing"
+	"time"
 
 	"firebase.google.com/go/auth"
 	"github.com/shunsukenagashima/chat-api/pkg/apperror"
+	"github.com/shunsukenagashima/chat-api/pkg/clock"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	repoMocks "github.com/shunsukenagashima/chat-api/pkg/domain/repository/mocks"
 	authMocks "github.com/shunsukenagashima/chat-api/pkg/infra/auth/mocks"
@@ -85,25 +87,30 @@ func TestSearchUsers(t *testing.T) {
 	mockAuth := new(authMocks.FirebaseAuthenticator)
 
 	var mockUsers []*model.User
+	clock := clock.FixedClocker{}
 
 	for i := 1; i <= 3; i++ {
+		currentTime := clock.Now().Add(time.Duration(i) * time.Hour)
 		iStr := strconv.Itoa(i)
 		mockUser := &model.User{
-			UserID:   "id-" + iStr,
-			Username: "user-" + iStr,
-			Email:    "user-" + iStr + "@example.com",
+			UserID:    "id-" + iStr,
+			Username:  "user-" + iStr,
+			Email:     "user-" + iStr + "@example.com",
+			ImageURL:  "image-url-" + iStr,
+			CreatedAt: currentTime,
 		}
 		mockUsers = append(mockUsers, mockUser)
 	}
 
-	mockRepo.On("SearchUsers", mock.Anything, "user", 0, 10).Return(mockUsers, nil)
+	mockRepo.On("SearchUsers", mock.Anything, "user", "", 10).Return(mockUsers, mockUsers[len(mockUsers)-1].CreatedAt.Format(time.RFC3339), nil)
 
 	userUsecase := NewUserUsecase(mockRepo, mockAuth)
 
-	users, err := userUsecase.SearchUsers(context.Background(), "user", 0, 10)
+	users, nextKey, err := userUsecase.SearchUsers(context.Background(), "user", "", 10)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, users)
+	assert.NotEmpty(t, nextKey)
 	assert.Equal(t, len(mockUsers), len(users))
 	mockRepo.AssertExpectations(t)
 }
