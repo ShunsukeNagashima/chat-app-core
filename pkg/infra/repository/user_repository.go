@@ -1,19 +1,11 @@
 package repository
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
-	"log"
-	"net/http"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/shunsukenagashima/chat-api/pkg/apperror"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/model"
 	"github.com/shunsukenagashima/chat-api/pkg/domain/repository"
@@ -21,23 +13,12 @@ import (
 
 type UserRepositoryImpl struct {
 	db     *dynamodb.DynamoDB
-	es     *elasticsearch.Client
 	dbName string
 }
 
-type EsSearchResponse struct {
-	Hits struct {
-		Hits []struct {
-			Source *model.User `json:"_source"`
-			Sort   []int       `json:"sort"`
-		} `json:"hits"`
-	} `json:"hits"`
-}
-
-func NewUserRepository(db *dynamodb.DynamoDB, es *elasticsearch.Client) repository.UserRepository {
+func NewUserRepository(db *dynamodb.DynamoDB) repository.UserRepository {
 	return &UserRepositoryImpl{
 		db,
-		es,
 		"Users",
 	}
 }
@@ -56,44 +37,6 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, user *model.User) error
 	_, err = r.db.PutItem(input)
 	if err != nil {
 		return err
-	}
-
-	userJson, err := json.Marshal(user)
-	if err != nil {
-		return err
-	}
-
-	req := esapi.IndexRequest{
-		Index:      "users",
-		DocumentID: user.UserID,
-		Body:       bytes.NewReader(userJson),
-		Refresh:    "true",
-	}
-
-	retryCount := 3
-	var lastErr error
-
-	for i := 0; i < retryCount; i++ {
-		res, err := req.Do(ctx, r.es)
-		if err != nil {
-			log.Printf("Error when trying to create index for user: %v", err)
-			continue
-		}
-
-		defer res.Body.Close()
-
-		if res.StatusCode != http.StatusCreated {
-			log.Printf("Unexpected status code returned %d", res.StatusCode)
-			lastErr = fmt.Errorf("unexpected status code: %d", res.StatusCode)
-			continue
-		}
-
-		lastErr = nil
-		break
-	}
-
-	if lastErr != nil {
-		log.Printf("Failed to create index for user after %d attempts", retryCount)
 	}
 
 	return nil
@@ -125,66 +68,6 @@ func (r *UserRepositoryImpl) GetByID(ctx context.Context, userId string) (*model
 	}
 
 	return &user, nil
-}
-
-func (r *UserRepositoryImpl) SearchUsers(ctx context.Context, query, nextKey string, size int) ([]*model.User, string, error) {
-	var buf bytes.Buffer
-	queryMap := map[string]interface{}{
-		"size": size + 1,
-		"sort": []map[string]string{
-			{
-				"createdAt": "desc",
-			},
-		},
-		"query": map[string]interface{}{
-			"match_phrase_prefix": map[string]interface{}{
-				"userName": query,
-			},
-		},
-	}
-
-	if nextKey != "" {
-		queryMap["search_after"] = []string{nextKey}
-	}
-
-	if err := json.NewEncoder(&buf).Encode(queryMap); err != nil {
-		return nil, "", err
-	}
-
-	res, err := r.es.Search(
-		r.es.Search.WithContext(ctx),
-		r.es.Search.WithIndex("users"),
-		r.es.Search.WithBody(&buf),
-		r.es.Search.WithTrackTotalHits(true),
-		r.es.Search.WithPretty(),
-	)
-	if err != nil {
-		return nil, "", err
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return nil, "", fmt.Errorf("error getting response: %s", res.String())
-	}
-
-	var esResponse EsSearchResponse
-	if err := json.NewDecoder(res.Body).Decode(&esResponse); err != nil {
-		return nil, "", err
-	}
-
-	users := make([]*model.User, len(esResponse.Hits.Hits))
-	for i, hit := range esResponse.Hits.Hits {
-		users[i] = hit.Source
-	}
-
-	newNextKey := ""
-	if len(esResponse.Hits.Hits) == size+1 {
-		lastHit := esResponse.Hits.Hits[len(esResponse.Hits.Hits)-2]
-		newNextKey = time.Unix(int64(lastHit.Sort[0]/1000), 0).Format(time.RFC3339)
-		users = users[:len(users)-1]
-	}
-
-	return users, newNextKey, nil
 }
 
 func (r *UserRepositoryImpl) BatchGetUsers(ctx context.Context, userIds []string) ([]*model.User, error) {

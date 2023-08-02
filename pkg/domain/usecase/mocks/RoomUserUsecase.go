@@ -54,6 +54,39 @@ func (_m *RoomUserUsecase) GetAllRoomsByUserID(ctx context.Context, userId strin
 	return r0, r1
 }
 
+// GetUsersByRoomID provides a mock function with given fields: ctx, roomId, lastEvaluatedKey, limit
+func (_m *RoomUserUsecase) GetUsersByRoomID(ctx context.Context, roomId string, lastEvaluatedKey string, limit int) ([]*model.User, string, error) {
+	ret := _m.Called(ctx, roomId, lastEvaluatedKey, limit)
+
+	var r0 []*model.User
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, int) ([]*model.User, string, error)); ok {
+		return rf(ctx, roomId, lastEvaluatedKey, limit)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, int) []*model.User); ok {
+		r0 = rf(ctx, roomId, lastEvaluatedKey, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, int) string); ok {
+		r1 = rf(ctx, roomId, lastEvaluatedKey, limit)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, string, string, int) error); ok {
+		r2 = rf(ctx, roomId, lastEvaluatedKey, limit)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // RemoveUserFromRoom provides a mock function with given fields: ctx, roomId, userId
 func (_m *RoomUserUsecase) RemoveUserFromRoom(ctx context.Context, roomId string, userId string) error {
 	ret := _m.Called(ctx, roomId, userId)

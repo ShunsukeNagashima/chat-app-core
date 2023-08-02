@@ -50,6 +50,48 @@ func (r *RoomUserRepositoryImpl) GetAllRoomsByUserID(ctx context.Context, userId
 	return roomUsers, nil
 }
 
+func (r *RoomUserRepositoryImpl) GetUsersByRoomID(ctx context.Context, roomId, lastEvaluatedKey string, limit int) ([]*model.RoomUser, string, error) {
+	input := &dynamodb.QueryInput{
+		TableName:              aws.String(r.dbName),
+		Limit:                  aws.Int64(int64(limit)),
+		KeyConditionExpression: aws.String("roomId = :r"),
+		ScanIndexForward:       aws.Bool(false),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":r": {
+				S: aws.String(roomId),
+			},
+		},
+	}
+
+	if lastEvaluatedKey != "" {
+		input.ExclusiveStartKey = map[string]*dynamodb.AttributeValue{
+			"roomId": {
+				S: aws.String(roomId),
+			},
+			"userId": {
+				S: aws.String(lastEvaluatedKey),
+			},
+		}
+	}
+
+	result, err := r.db.Query(input)
+	if err != nil {
+		return nil, "", err
+	}
+
+	var roomUsers []*model.RoomUser
+	if err := dynamodbattribute.UnmarshalListOfMaps(result.Items, &roomUsers); err != nil {
+		return nil, "", err
+	}
+
+	var nextKey string
+	if result.LastEvaluatedKey != nil {
+		nextKey = *result.LastEvaluatedKey["userId"].S
+	}
+
+	return roomUsers, nextKey, nil
+}
+
 func (r *RoomUserRepositoryImpl) RemoveUserFromRoom(ctx context.Context, roomId, userId string) error {
 	input := &dynamodb.DeleteItemInput{
 		TableName: aws.String(r.dbName),

@@ -29,8 +29,4 @@ func main() {
 	if err := setupScripts.SetupMessages(users, roomIDs[0]); err != nil {
 		log.Panicf("Failed to set up messages: %v", err)
 	}
-
-	if err := setupScripts.SetUpElasticsearch(users); err != nil {
-		log.Panicf("Failed to set up elasticsearch: %v", err)
-	}
 }

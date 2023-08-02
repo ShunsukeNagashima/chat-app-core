@@ -2,7 +2,6 @@ package controller
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -66,29 +65,6 @@ func (uc *UserController) GetUserByID(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"result": result})
-}
-
-func (uc *UserController) SearchUsers(ctx *gin.Context) {
-	query := ctx.Query("query")
-	nextKey := ctx.Query("nextKey")
-	sizeStr := ctx.DefaultQuery("size", "20")
-
-	size, err := strconv.Atoi(sizeStr)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	users, nextKey, err := uc.userUsecase.SearchUsers(ctx.Request.Context(), query, nextKey, size)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"result":  users,
-		"nextKey": nextKey,
-	})
 }
 
 func (uc *UserController) BatchGetUsers(ctx *gin.Context) {
