@@ -1,12 +1,7 @@
 package repository
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
-	"log"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -18,14 +13,12 @@ import (
 
 type MessageRepositoryImpl struct {
 	db     *dynamodb.DynamoDB
-	er     repository.ElasticsearchRepository
 	dbName string
 }
 
-func NewMessageRepository(db *dynamodb.DynamoDB, er repository.ElasticsearchRepository) repository.MessageRepository {
+func NewMessageRepository(db *dynamodb.DynamoDB) repository.MessageRepository {
 	return &MessageRepositoryImpl{
 		db,
-		er,
 		"Messages",
 	}
 }
@@ -120,15 +113,6 @@ func (mr *MessageRepositoryImpl) Create(ctx context.Context, message *model.Mess
 		return err
 	}
 
-	messageJson, err := json.Marshal(message)
-	if err != nil {
-		return err
-	}
-
-	if err := mr.er.Create(ctx, "messages", message.MessageID, bytes.NewReader(messageJson)); err != nil {
-		log.Printf("%s", err.Error())
-	}
-
 	return nil
 }
 
@@ -169,10 +153,6 @@ func (mr *MessageRepositoryImpl) Update(ctx context.Context, roomId, messageId, 
 		return err
 	}
 
-	if err := mr.er.Update(ctx, "messages", messageId, strings.NewReader(fmt.Sprintf(`{"doc": {"content": "%s"}}`, newContent))); err != nil {
-		log.Printf("%s", err.Error())
-	}
-
 	return nil
 }
 
@@ -204,10 +184,6 @@ func (mr *MessageRepositoryImpl) Delete(ctx context.Context, roomId, messageId s
 	_, err = mr.db.DeleteItem(deleteInput)
 	if err != nil {
 		return err
-	}
-
-	if err := mr.er.Delete(ctx, "messages", messageId); err != nil {
-		log.Printf("%s", err.Error())
 	}
 
 	return nil

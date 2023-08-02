@@ -12,10 +12,6 @@ func main() {
 		log.Panicf("Failed to clean up dynamodb: %v", err)
 	}
 
-	if err := cleanupScripts.CleanUpElasticsearch(); err != nil {
-		log.Panicf("Failed to clean up elasticsearch: %v", err)
-	}
-
 	users, err := setupScripts.SetupUsers()
 	if err != nil {
 		log.Panicf("Failed to set up users: %v", err)
