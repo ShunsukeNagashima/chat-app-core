@@ -26,14 +26,6 @@ func main() {
 		log.Panicf("Failed to set up room users: %v", err)
 	}
 
-	if err := setupScripts.SetupLikes(); err != nil {
-		log.Panicf("Failed to set up likes: %v", err)
-	}
-
-	if err := setupScripts.SetupReadby(); err != nil {
-		log.Panicf("Failed to set up readby: %v", err)
-	}
-
 	if err := setupScripts.SetupMessages(users, roomIDs[0]); err != nil {
 		log.Panicf("Failed to set up messages: %v", err)
 	}
