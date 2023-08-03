@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"regexp"
@@ -66,10 +65,8 @@ func initializeControllers(ctx context.Context) (*controller.Controllers, error)
 		return nil, err
 	}
 
-	env := os.Getenv("APP_ENV")
-	secretName := fmt.Sprintf("app/%s/AppSecrets", env)
 	input := &secretsmanager.GetSecretValueInput{
-		SecretId: aws.String(secretName),
+		SecretId: aws.String("firebase-creds"),
 	}
 
 	result, err := svc.GetSecretValue(input)
@@ -77,7 +74,6 @@ func initializeControllers(ctx context.Context) (*controller.Controllers, error)
 		return nil, err
 	}
 
-	log.Println("result.SecretString: ", *result.SecretString)
 	opt := option.WithCredentialsJSON([]byte(*result.SecretString))
 	app, err := firebase.NewApp(ctx, nil, opt)
 	if err != nil {
