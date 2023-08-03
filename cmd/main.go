@@ -43,13 +43,18 @@ func run(ctx context.Context) error {
 	}
 
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowAllOrigins = true
+	corsConfig.AllowAllOrigins = false
+	corsConfig.AllowOrigins = []string{
+		"http://localhost:3000",
+		"http://localhost:3001",
+		"https://chat-now.net",
+	}
 
 	router.Use(cors.New(corsConfig))
 
 	route.RegisterRoutes(router, controllers)
 
-	return router.Run()
+	return router.Run(":8080")
 }
 
 func initializeControllers(ctx context.Context) (*controller.Controllers, error) {
