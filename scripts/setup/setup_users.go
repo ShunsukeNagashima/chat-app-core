@@ -49,9 +49,9 @@ func SetupUsers() ([]*model.User, error) {
 	var users []*model.User
 	clock := clock.FixedClocker{}
 	firebaseUser := &model.User{
-		UserID:    "qTF9aUAHNqNyi7R3sQtSGSRhTft1",
+		UserID:    "wMePcLosRjRcr4LVmrMgrbuYRG32",
 		Username:  "Sample User",
-		Email:     "shun.mmks_n@icloud.com",
+		Email:     "test@test.com",
 		ImageURL:  "https://images.unsplash.com/photo-1552053831-71594a27632d?fit=crop&w=500&h=500",
 		CreatedAt: clock.Now(),
 	}
