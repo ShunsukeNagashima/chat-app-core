@@ -42,6 +42,38 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, user *model.User) error
 	return nil
 }
 
+func (r *UserRepositoryImpl) GetMultiple(ctx context.Context, lastEvaluatedKey string, limit int) ([]*model.User, string, error) {
+	input := &dynamodb.ScanInput{
+		TableName: aws.String(r.dbName),
+		Limit:     aws.Int64(int64(limit)),
+	}
+
+	if lastEvaluatedKey != "" {
+		input.ExclusiveStartKey = map[string]*dynamodb.AttributeValue{
+			"userId": {
+				S: aws.String(lastEvaluatedKey),
+			},
+		}
+	}
+
+	result, err := r.db.Scan(input)
+	if err != nil {
+		return nil, "", err
+	}
+
+	var users []*model.User
+	if err := dynamodbattribute.UnmarshalListOfMaps(result.Items, &users); err != nil {
+		return nil, "", err
+	}
+
+	var nextKey string
+	if result.LastEvaluatedKey != nil {
+		nextKey = *result.LastEvaluatedKey["userId"].S
+	}
+
+	return users, nextKey, nil
+}
+
 func (r *UserRepositoryImpl) GetByID(ctx context.Context, userId string) (*model.User, error) {
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(r.dbName),

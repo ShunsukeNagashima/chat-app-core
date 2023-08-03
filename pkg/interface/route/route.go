@@ -15,6 +15,7 @@ func RegisterRoutes(router *gin.Engine, controllers *controller.Controllers) {
 		apiGroup.PUT("/rooms/:roomId", controllers.RoomController.UpdateRoom)
 		apiGroup.DELETE("/rooms/:roomId", controllers.RoomController.DeleteRoom)
 		apiGroup.GET("/users/:userId", controllers.UserController.GetUserByID)
+		apiGroup.GET("/users", controllers.UserController.GetMultipleUsers)
 		apiGroup.POST("/users", controllers.UserController.CreateUser)
 		apiGroup.GET("/users/:userId/rooms", controllers.RoomUserController.GetAllRoomsByUserID)
 		apiGroup.GET("/users/batch", controllers.UserController.BatchGetUsers)

@@ -80,6 +80,39 @@ func (_m *UserRepository) GetByID(ctx context.Context, userId string) (*model.Us
 	return r0, r1
 }
 
+// GetMultiple provides a mock function with given fields: ctx, lastEvaluatedKey, limit
+func (_m *UserRepository) GetMultiple(ctx context.Context, lastEvaluatedKey string, limit int) ([]*model.User, string, error) {
+	ret := _m.Called(ctx, lastEvaluatedKey, limit)
+
+	var r0 []*model.User
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, int) ([]*model.User, string, error)); ok {
+		return rf(ctx, lastEvaluatedKey, limit)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, int) []*model.User); ok {
+		r0 = rf(ctx, lastEvaluatedKey, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, int) string); ok {
+		r1 = rf(ctx, lastEvaluatedKey, limit)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, string, int) error); ok {
+		r2 = rf(ctx, lastEvaluatedKey, limit)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 type mockConstructorTestingTNewUserRepository interface {
 	mock.TestingT
 	Cleanup(func())

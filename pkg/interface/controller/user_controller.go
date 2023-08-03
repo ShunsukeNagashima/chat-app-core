@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -65,6 +66,23 @@ func (uc *UserController) GetUserByID(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"result": result})
+}
+
+func (uc *UserController) GetMultipleUsers(ctx *gin.Context) {
+	lastEvaluatedKey := ctx.Query("lastEvaluatedKey")
+	limit := ctx.DefaultQuery("limit", "10")
+
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	users, nextKey, err := uc.userUsecase.GetMultipleUsers(ctx, lastEvaluatedKey, limitInt)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"result": users, "nextKey": nextKey})
 }
 
 func (uc *UserController) BatchGetUsers(ctx *gin.Context) {
