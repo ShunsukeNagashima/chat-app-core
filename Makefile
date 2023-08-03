@@ -1,7 +1,16 @@
 .PHONY: up down test logs migrate lint gen-mocks
 
 up:
-		docker compose up -d
+		@docker-compose up -d
+		@sleep 5 \
+		&& export AWS_ACCESS_KEY_ID=dummy \
+			AWS_SECRET_ACCESS_KEY=dummy \
+			AWS_SESSION_TOKEN=dummy \
+			AWS_DEFAULT_REGION=ap-northeast-1 \
+		&& aws --endpoint-url=http://localhost:4566 secretsmanager create-secret \
+				--name "firebase-creds" \
+				--secret-string file://./secrets/firebase-credentials.json
+
 
 down:
 		docker compose down
@@ -23,4 +32,5 @@ gen-mocks:
 
 build: ## Build docker image to deploy
 		docker build -t chat-app-core:latest \
+						--platform linux/x86_64 \
 						--target deploy .

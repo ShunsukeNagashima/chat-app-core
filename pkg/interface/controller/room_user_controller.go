@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -30,6 +31,24 @@ func (rc *RoomUserController) GetAllRoomsByUserID(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"result": rooms})
+}
+
+func (rc *RoomUserController) GetUsersByRoomID(ctx *gin.Context) {
+	roomId := ctx.Param("roomId")
+	lastEvaluatedKey := ctx.Query("lastEvaluatedKey")
+	limit := ctx.DefaultQuery("limit", "20")
+
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	users, nextKey, err := rc.roomUserUsecase.GetUsersByRoomID(ctx, roomId, lastEvaluatedKey, limitInt)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"result": users, "nextKey": nextKey})
 }
 
 func (rc *RoomUserController) RemoveUserFromRoom(ctx *gin.Context) {

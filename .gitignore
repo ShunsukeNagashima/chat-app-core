@@ -27,3 +27,5 @@ secrets
 .env
 
 docker
+
+.localstack

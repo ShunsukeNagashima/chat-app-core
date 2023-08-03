@@ -41,6 +41,24 @@ func (ru *RoomUserUsecaseImpl) GetAllRoomsByUserID(ctx context.Context, userId s
 	return rooms, nil
 }
 
+func (ru *RoomUserUsecaseImpl) GetUsersByRoomID(ctx context.Context, roomId, lastEvaluatedKey string, limit int) ([]*model.User, string, error) {
+	roomUsersers, nextKey, err := ru.roomUserRepo.GetUsersByRoomID(ctx, roomId, lastEvaluatedKey, limit)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get users by room ID: %w", err)
+	}
+
+	var users []*model.User
+	for _, roomUser := range roomUsersers {
+		user, err := ru.userRepo.GetByID(ctx, roomUser.UserID)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to get user by ID: %w", err)
+		}
+		users = append(users, user)
+	}
+
+	return users, nextKey, nil
+}
+
 func (ru *RoomUserUsecaseImpl) RemoveUserFromRoom(ctx context.Context, roomId, userId string) error {
 	if err := ru.roomUserRepo.RemoveUserFromRoom(ctx, roomId, userId); err != nil {
 		return fmt.Errorf("failed to remove the user from the room: %w", err)

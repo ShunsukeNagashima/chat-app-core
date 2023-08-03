@@ -54,6 +54,39 @@ func (_m *UserUsecase) CreateUser(ctx context.Context, user *model.User, idToken
 	return r0
 }
 
+// GetMultipleUsers provides a mock function with given fields: ctx, lastEvaluatedKey, limit
+func (_m *UserUsecase) GetMultipleUsers(ctx context.Context, lastEvaluatedKey string, limit int) ([]*model.User, string, error) {
+	ret := _m.Called(ctx, lastEvaluatedKey, limit)
+
+	var r0 []*model.User
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, int) ([]*model.User, string, error)); ok {
+		return rf(ctx, lastEvaluatedKey, limit)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, int) []*model.User); ok {
+		r0 = rf(ctx, lastEvaluatedKey, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, int) string); ok {
+		r1 = rf(ctx, lastEvaluatedKey, limit)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, string, int) error); ok {
+		r2 = rf(ctx, lastEvaluatedKey, limit)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // GetUserByID provides a mock function with given fields: ctx, userId
 func (_m *UserUsecase) GetUserByID(ctx context.Context, userId string) (*model.User, error) {
 	ret := _m.Called(ctx, userId)
@@ -78,39 +111,6 @@ func (_m *UserUsecase) GetUserByID(ctx context.Context, userId string) (*model.U
 	}
 
 	return r0, r1
-}
-
-// SearchUsers provides a mock function with given fields: ctx, query, nextKey, size
-func (_m *UserUsecase) SearchUsers(ctx context.Context, query string, nextKey string, size int) ([]*model.User, string, error) {
-	ret := _m.Called(ctx, query, nextKey, size)
-
-	var r0 []*model.User
-	var r1 string
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, int) ([]*model.User, string, error)); ok {
-		return rf(ctx, query, nextKey, size)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, int) []*model.User); ok {
-		r0 = rf(ctx, query, nextKey, size)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.User)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, int) string); ok {
-		r1 = rf(ctx, query, nextKey, size)
-	} else {
-		r1 = ret.Get(1).(string)
-	}
-
-	if rf, ok := ret.Get(2).(func(context.Context, string, string, int) error); ok {
-		r2 = rf(ctx, query, nextKey, size)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
 }
 
 type mockConstructorTestingTNewUserUsecase interface {

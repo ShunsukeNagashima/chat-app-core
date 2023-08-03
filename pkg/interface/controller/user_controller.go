@@ -68,27 +68,21 @@ func (uc *UserController) GetUserByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"result": result})
 }
 
-func (uc *UserController) SearchUsers(ctx *gin.Context) {
-	query := ctx.Query("query")
-	nextKey := ctx.Query("nextKey")
-	sizeStr := ctx.DefaultQuery("size", "20")
+func (uc *UserController) GetMultipleUsers(ctx *gin.Context) {
+	lastEvaluatedKey := ctx.Query("lastEvaluatedKey")
+	limit := ctx.DefaultQuery("limit", "10")
 
-	size, err := strconv.Atoi(sizeStr)
+	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
 	}
-
-	users, nextKey, err := uc.userUsecase.SearchUsers(ctx.Request.Context(), query, nextKey, size)
+	users, nextKey, err := uc.userUsecase.GetMultipleUsers(ctx, lastEvaluatedKey, limitInt)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"result":  users,
-		"nextKey": nextKey,
-	})
+	ctx.JSON(http.StatusOK, gin.H{"result": users, "nextKey": nextKey})
 }
 
 func (uc *UserController) BatchGetUsers(ctx *gin.Context) {

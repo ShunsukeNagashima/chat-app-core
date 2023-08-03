@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/shunsukenagashima/chat-api/pkg/apperror"
 	"github.com/shunsukenagashima/chat-api/pkg/clock"
@@ -26,15 +25,16 @@ func NewUserUsecase(repo repository.UserRepository, firebaseAuth auth.FirebaseAu
 }
 
 func (uu *UserUsecaseImpl) CreateUser(ctx context.Context, user *model.User, idToken string) error {
-	token, err := uu.firebaseAuth.GetFirebaseUser(ctx, idToken)
-	if err != nil {
-		return err
-	}
-	if token.UID != user.UserID {
-		return fmt.Errorf("provided user ID does not match the user ID in Firebase token")
-	}
+	// TODO: NAT Gateway is required to use Firebase Auth
+	// token, err := uu.firebaseAuth.GetFirebaseUser(ctx, idToken)
+	// if err != nil {
+	// 	return err
+	// }
+	// if token.UID != user.UserID {
+	// 	return fmt.Errorf("provided user ID does not match the user ID in Firebase token")
+	// }
 
-	_, err = uu.repo.GetByID(ctx, user.UserID)
+	_, err := uu.repo.GetByID(ctx, user.UserID)
 	if err != nil {
 		var notFoundErr *apperror.NotFoundErr
 		if !errors.As(err, &notFoundErr) {
@@ -48,12 +48,12 @@ func (uu *UserUsecaseImpl) CreateUser(ctx context.Context, user *model.User, idT
 	return uu.repo.Create(ctx, user)
 }
 
-func (uu *UserUsecaseImpl) GetUserByID(ctx context.Context, userId string) (*model.User, error) {
-	return uu.repo.GetByID(ctx, userId)
+func (uu *UserUsecaseImpl) GetMultipleUsers(ctx context.Context, lastEvaluatedKey string, limit int) ([]*model.User, string, error) {
+	return uu.repo.GetMultiple(ctx, lastEvaluatedKey, limit)
 }
 
-func (uu *UserUsecaseImpl) SearchUsers(ctx context.Context, query, nextKey string, size int) ([]*model.User, string, error) {
-	return uu.repo.SearchUsers(ctx, query, nextKey, size)
+func (uu *UserUsecaseImpl) GetUserByID(ctx context.Context, userId string) (*model.User, error) {
+	return uu.repo.GetByID(ctx, userId)
 }
 
 func (uu *UserUsecaseImpl) BatchGetUsers(ctx context.Context, userIds []string) ([]*model.User, error) {
